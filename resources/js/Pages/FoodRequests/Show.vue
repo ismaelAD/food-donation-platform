@@ -150,31 +150,101 @@
           </form>
         </div>
 
-        <!-- Money Contribution Form -->
-        <div v-if="goalAmount > 0" class="bg-white shadow-sm rounded-xl border border-gray-200 p-6">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Contribute Money</h3>
-          <form @submit.prevent="contribute" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Amount (€)</label>
-              <input 
-                v-model.number="payment.amount" 
-                type="number" 
-                min="1" 
-                step="0.01"
-                required 
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                placeholder="e.g., 25.00"
-              />
-            </div>
-            <button 
-              type="submit" 
-              :disabled="payment.processing"
-              class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              {{ payment.processing ? 'Processing...' : 'Contribute Now' }}
-            </button>
-          </form>
+           <!-- Money Contribution Section -->
+  <div v-if="goalAmount > 0" class="bg-white shadow-sm rounded-xl border border-gray-200 p-6">
+    <h3 class="text-xl font-bold text-gray-900 mb-4">Contribute Money</h3>
+    
+    <!-- Étape 1 : montant only -->
+    <div v-if="!showPaymentDetails">
+      <form @submit.prevent="preparePayment" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Amount (€)</label>
+          <input 
+            v-model.number="payment.amount" 
+            type="number"
+            min="1" 
+            step="0.01"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+            placeholder="e.g., 25.00"
+          />
         </div>
+        <button 
+          type="submit"
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+        >
+          Contribute Now
+        </button>
+      </form>
+    </div>
+
+    <!-- Étape 2 : détails de paiement -->
+    <div v-else class="space-y-4 mt-4">
+      <h4 class="text-md font-semibold text-gray-700">Payment Details</h4>
+      <form @submit.prevent="contribute" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
+          <input 
+            v-model="payment.cardName"
+            type="text" 
+            required
+            class="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="John Doe"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
+          <input 
+            v-model="payment.cardNumber"
+            type="text" 
+            required
+            pattern="\d{4}\s\d{4}\s\d{4}\s\d{4}"
+            class="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="4242 4242 4242 4242"
+          />
+        </div>
+        <div class="flex gap-3">
+          <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Expiry (MM/YY)</label>
+            <input 
+              v-model="payment.expiry"
+              type="text" 
+              required
+              pattern="(0[1-9]|1[0-2])\/\d{2}"
+              class="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="MM/YY"
+            />
+          </div>
+          <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-2">CVC</label>
+            <input 
+              v-model="payment.cvc"
+              type="text" 
+              required
+              pattern="\d{3}"
+              class="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="123"
+            />
+          </div>
+        </div>
+        <button 
+          type="submit"
+          :disabled="payment.processing"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50"
+        >
+          {{ payment.processing ? 'Processing...' : 'Send Payment' }}
+        </button>
+        <button 
+          type="button"
+          @click="cancelPayment"
+          class="w-full text-center text-gray-600 mt-2 hover:underline"
+        >
+          Cancel
+        </button>
+      </form>
+    </div>
+  </div>
+        
 
       </div>
     </div>
@@ -182,10 +252,45 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref,computed } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
 
 const props = defineProps({ request: Object })
+const showPaymentDetails = ref(false)
+const payment = useForm({
+  amount: null,
+  cardName: '',
+  cardNumber: '',
+  expiry: '',
+  cvc: '',
+  processing: false,
+})
+
+function preparePayment() {
+  if (!payment.amount || payment.amount <= 0) return
+  showPaymentDetails.value = true
+}
+
+function contribute() {
+  // validation front supplémentaire
+  if (!payment.cardName || !payment.cardNumber || !payment.expiry || !payment.cvc) {
+    alert('Please fill in all payment fields correctly.')
+    return
+  }
+  payment.processing = true
+  payment.post(`/food-requests/${props.request.id}/contribute`, {
+    preserveScroll: true,
+    onFinish: () => payment.processing = false,
+    onSuccess: () => {
+      payment.reset()
+      showPaymentDetails.value = false
+    },
+  })
+}
+
+function cancelPayment() {
+  showPaymentDetails.value = false
+}
 
 // Food offer form
 const offer = useForm({ quantity: null, available_until: null })
@@ -197,13 +302,7 @@ function respond() {
 }
 
 // Money contribution form
-const payment = useForm({ amount: null })
-function contribute() {
-  payment.post(`/food-requests/${props.request.id}/contribute`, {
-    preserveScroll: true,
-    onSuccess: () => payment.reset(),
-  })
-}
+
 
 // Food progress calculations
 const totalFoodDonated = computed(() =>

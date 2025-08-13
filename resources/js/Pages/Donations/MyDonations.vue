@@ -7,6 +7,7 @@
   class="fixed inset-0 w-full h-full object-cover opacity-20 pointer-events-none select-none"
   style="z-index: -1;"
 />
+<Header />
     <div class="max-w-6xl mx-auto py-10 px-4">
       <div class="text-center mb-10">
         <h1 class="text-4xl font-bold text-gray-800 mb-3">My Donations</h1>
@@ -145,6 +146,8 @@
 <script setup>
 import { ref } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import Header from '@/Components/Header.vue'
+
 
 const props = defineProps({
   donations: Array

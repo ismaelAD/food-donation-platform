@@ -182,7 +182,7 @@
       <!-- Submit -->
       <div class="flex items-center justify-end space-x-4 mt-6">
         <Link
-          href="route('login')"
+          href="/login"
           class="text-sm text-gray-600 underline hover:text-gray-900"
         >
           Already registered?

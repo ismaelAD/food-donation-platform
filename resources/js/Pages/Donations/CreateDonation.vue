@@ -1,4 +1,5 @@
 <template>
+  <Header/>
 <div>
   <img
   src="/bckg4.jpg"
@@ -6,20 +7,10 @@
   class="fixed inset-0 w-full h-full object-cover opacity-100 pointer-events-none select-none"
   style="z-index: -1;"
 />
+
     <div class="max-w-6xl mx-auto">
-      <!-- Header -->
-             <!-- Back to Dashboard Button -->
-      <div class="mb-6 flex justify-start">
-        <a
-          href="/dashboard"
-          class="inline-flex items-center px-5 py-2 bg-emerald-500 text-white rounded-xl font-medium shadow hover:bg-emerald-600 transition-all duration-200"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back
-        </a>
-      </div>
+      
+
       <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 text-center">
         <h1 class="text-4xl font-bold text-white mb-2"> New donation</h1>
       </div>
@@ -100,7 +91,7 @@
                   </label>
                   <input
                     v-model="form.available_from"
-                    type="time"
+                    type="datetime-local"
                     class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                   />
                 </div>
@@ -127,39 +118,6 @@
                   type="date"
                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                 />
-              </div>
-
-              <!-- Donor Type -->
-              <div class="form-group">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                  Donor type
-                </label>
-                <div class="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    @click="form.donor_type = 'individual'"
-                    :class="[
-                      'px-4 py-3 rounded-xl border-2 transition-all duration-200 text-center font-medium',
-                      form.donor_type === 'individual'
-                        ? 'bg-blue-500 text-white border-blue-500'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300'
-                    ]"
-                  >
-                    Individual
-                  </button>
-                  <button
-                    type="button"
-                    @click="form.donor_type = 'organization'"
-                    :class="[
-                      'px-4 py-3 rounded-xl border-2 transition-all duration-200 text-center font-medium',
-                      form.donor_type === 'organization'
-                        ? 'bg-blue-500 text-white border-blue-500'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300'
-                    ]"
-                  >
-                    Organization
-                  </button>
-                </div>
               </div>
 
               <!-- Location -->
@@ -244,6 +202,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { router } from '@inertiajs/vue3'
+import Header from '@/Components/Header.vue'
+
 
 // Form data
 const form = ref({

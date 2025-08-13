@@ -1,4 +1,5 @@
 <template>
+  <Header/>
   <div class="min-h-screen bg-gradient-to-br from-green-100 via-green-50 to-white py-8 px-4">
     <div class="max-w-4xl mx-auto">
       <!-- Header Card -->
@@ -113,6 +114,8 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
+import Header from '@/Components/Header.vue'
+
 
 const props = defineProps({
   notifications: Array,

@@ -37,6 +37,7 @@ class Donation extends Model
 
        protected $casts = [
         'available_until' => 'datetime',
+        'available_from' => 'datetime',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
     ];

@@ -57,24 +57,7 @@
               >
                 All ({{ donations.length }})
               </button>
-              <button 
-                @click="setFilter('urgent')"
-                :class="filterType === 'urgent' 
-                  ? 'bg-gradient-to-r from-red-500 to-red-500 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                class="px-4 py-2 rounded-xl font-medium transition-all duration-300 border border-gray-200"
-              >
-                Urgent ({{ urgentDonations.length }})
-              </button>
-              <button 
-                @click="setFilter('nearby')"
-                :class="filterType === 'nearby' 
-                  ? 'bg-gradient-to-r from-green-500 to-green-500 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                class="px-4 py-2 rounded-xl font-medium transition-all duration-300 border border-gray-200"
-              >
-                Nearby ({{ nearbyDonations.length }})
-              </button>
+
             </div>
           </div>
         </div>
@@ -203,14 +186,12 @@
 
           <!-- Action Buttons -->
           <div class="flex space-x-3 pt-4">
-            <button 
-              @click="requestDonation(selectedDonation)"
-              :disabled="selectedDonation.status === 'reserved' || processing"
-              class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span v-if="processing">Processing...</span>
-              <span v-else>{{ selectedDonation.status === 'reserved' ? 'Reserved' : 'Request Donation' }}</span>
-            </button>
+  <button
+    @click="goToDonation(selectedDonation)"
+    class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg"
+  >
+    Request Donation
+  </button>
             <button 
               @click="getDirections(selectedDonation)"
               class="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
@@ -248,6 +229,12 @@
 <script>
 import { Head, Link, router } from '@inertiajs/vue3'
 import{onMounted, onBeforeUnmount, ref} from 'vue'
+import Header from '@/Components/Header.vue'
+
+
+//function goToDonation(donation) {
+//  router.visit(`/donations/${donation.id}`)
+//}
 
 export default {
   name: 'DonationsMap',
@@ -331,6 +318,11 @@ export default {
     }
   },
   methods: {
+
+    goToDonation(donation) {
+      // redirection Inertia vers la page de détail
+      router.visit(`/donations/${donation.id}`)
+    },
     async initMap() {
       // Wait for DOM to be ready
       await this.$nextTick()
@@ -382,6 +374,8 @@ export default {
         this.showToast('Error initializing map', 'error')
       }
     },
+
+      
 
     loadLeaflet() {
       return new Promise((resolve) => {
@@ -563,29 +557,9 @@ export default {
       this.selectedDonation = null
     },
 
-    requestDonation(donation) {
+    nation(donation) {
       this.processing = true
       
-      router.post(route('donations.request', donation.id), {}, {
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: (page) => {
-          this.showToast('Donation request sent successfully!', 'success')
-          this.closeModal()
-          // Update the donation in the local data
-          const donationIndex = this.donations.findIndex(d => d.id === donation.id)
-          if (donationIndex !== -1) {
-            this.donations[donationIndex].status = 'reserved'
-          }
-        },
-        onError: (errors) => {
-          this.showToast('Error sending donation request', 'error')
-          console.error('Request error:', errors)
-        },
-        onFinish: () => {
-          this.processing = false
-        }
-      })
     },
 
     getDirections(donation) {

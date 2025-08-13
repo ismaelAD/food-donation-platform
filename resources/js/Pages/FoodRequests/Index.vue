@@ -1,22 +1,5 @@
 <template>
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
-  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-    
-    <div class="flex items-center space-x-3">
-      <img src="/logo2.webp" alt="Logo" class="w-10 h-10 rounded-full object-contain" />
-      <span class="text-xl font-semibold text-gray-800">FoodShare</span>
-    </div>
-
-    <button @click="goBack"
-            class="flex items-center text-sm text-gray-600 hover:text-emerald-600 transition">
-      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-      Back
-    </button>
-
-  </div>
-</nav>
+<Header />
   <div class="min-h-screen bg-gray-50">
     <div class="max-w-6xl mx-auto py-8 px-4">
       
@@ -235,6 +218,8 @@
 import { ref, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { Link } from '@inertiajs/vue3'
+import Header from '@/Components/Header.vue'
+
 
 const props = defineProps({ requests: [Array, Object] })
 

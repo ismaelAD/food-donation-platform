@@ -23,6 +23,7 @@ class Partner extends Model
         'level',
         'document_path',  
          'role', 
+         'sponsor_level', 
     ];
 
     /**
@@ -78,5 +79,26 @@ public function organization()
 {
     return $this->belongsTo(Organization::class);
 }
+public function sponsorships()
+{
+    return $this->hasMany(\App\Models\Sponsorship::class);
+}
+public function sponsorship()
+{
+    return $this->hasOne(Sponsorship::class)->where('status', 'active');
+}
+public function currentSponsorship()
+    {
+        return $this->hasOne(\App\Models\Sponsorship::class)
+                    ->where('status','active')
+                    ->where('end_at','>', now());
+    }
+     public function getCurrentTier()
+    {
+        return $this->sponsorships()
+                    ->where('status', 'approved')
+                    ->latest()
+                    ->first()?->tier;
+    }   
 
 }

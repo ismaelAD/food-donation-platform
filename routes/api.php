@@ -11,6 +11,12 @@ use App\Http\Controllers\DistributionController;
 use App\Http\Controllers\PickupController;
 use App\Http\Controllers\VolunteerController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\SponsorshipController;
+use App\Http\Controllers\SponsorController;
+
+
+use App\Models\Sponsorship;
+
 // 🔐 Auth public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
@@ -39,4 +45,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('pickups', PickupController::class);
     Route::apiResource('volunteers', VolunteerController::class);
     Route::apiResource('partners', PartnerController::class);
+    Route::get('/sponsors', function () {
+    return Sponsorship::with('partner', 'tier')
+        ->where('status', 'approved')
+        ->whereDate('start_at', '<=', now())
+        ->whereDate('end_at', '>=', now())
+        ->get();
+    });
+    //Route::get('/sponsor-images', [SponsorshipController::class, 'getActiveSponsorImages']);
+    Route::get('/sponsors-images', [SponsorController::class, 'getActiveSponsors']);
+    //Route::get('/sponsors-images', [App\Http\Controllers\Api\SponsorshipController::class, 'images']);
+
+
+
 });

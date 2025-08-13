@@ -7,18 +7,38 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Notifications\PartnerStatusUpdated;
 use App\Notifications\PartnerLevelUp;
+use App\Models\SponsorshipTier;
 
 
 class PartnerController extends Controller
 {
-    public function index()
+public function index()
     {
-        $partners = Partner::withCount('donations')->get();
+        $partners = Partner::withCount('donations')
+            // eager‑load only the one active sponsorship whose end_at > now()
+            ->with(['currentSponsorship.tier'])
+            ->get();
+
 
         return Inertia::render('Partners', [
-            'partners' => $partners
+            'partners' => $partners,
+            'sponsorshipTiers'  => SponsorshipTier::all(['id','name']),
+
         ]);
     }
+
+    public function show($id)
+    {
+        $partner = Partner::with('currentSponsorship.tier')
+            ->findOrFail($id);
+
+        return Inertia::render('Partners/Show', [
+            'partner'           => $partner,
+            // still pass all tiers if you need to build a dropdown elsewhere
+            'sponsorshipTiers'  => SponsorshipTier::all(['id','name']),
+        ]);
+    }
+
 
     public function store(Request $request)
     {
@@ -35,10 +55,6 @@ class PartnerController extends Controller
         return response()->json($partner, 201);
     }
 
-    public function show($id)
-    {
-        return Partner::with('donations')->findOrFail($id);
-    }
 
     public function update(Request $request, $id)
     {
@@ -90,7 +106,7 @@ public function updateStatus(Request $request, Partner $partner)
 
 public function updateLevel()
 {
-    $partner = Partner::find($id); // ou récupéré autrement
+    $partner = Partner::find($id); 
     $count    = $partner->donations()->count();
     $newLevel = min(floor($count / 10) + 1, 10);
 

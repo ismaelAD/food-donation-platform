@@ -149,6 +149,7 @@ if ($user->role === 'organization') {
         
 }
 // Check if user is organization
+    $receivedFoodDonations = collect(); 
     if ($user->role === 'organization') {
         // Get food donations received in response to this organization’s requests
         $receivedFoodDonations = FoodRequestDonation::with(['user', 'foodRequest'])

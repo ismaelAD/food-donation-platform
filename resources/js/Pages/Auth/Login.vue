@@ -86,6 +86,12 @@ const submit = () => {
                 >
                     Forgot your password?
                 </Link>
+                  <Link
+    href="/register"
+    class="text-sm text-indigo-600 underline hover:text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+  >
+    Register
+  </Link>
 
                 <PrimaryButton
                     class="ms-4"

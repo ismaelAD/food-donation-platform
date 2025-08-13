@@ -1,4 +1,5 @@
 <template>
+  <Header/>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
     <div class="max-w-lg mx-auto bg-white shadow-xl rounded-2xl overflow-hidden">
       <!-- Header avec bouton retour -->
@@ -129,6 +130,8 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3'
 import { computed, onMounted } from 'vue'
+import Header from '@/Components/Header.vue'
+
 
 const props = defineProps({
   donation: Object,

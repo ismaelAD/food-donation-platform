@@ -6,6 +6,7 @@
   class="fixed inset-0 w-full h-full object-cover opacity-100 pointer-events-none select-none"
   style="z-index: -1;"
 />
+<Header />
     <div class="max-w-6xl mx-auto">
       <!-- Header -->
       <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 text-center">
@@ -27,7 +28,6 @@
           <!-- Partner Info -->
           <div class="flex items-center justify-between mb-4">
             <div class="text-xl font-bold text-gray-800">{{ partner.name }}</div>
-
           </div>
 
           <div class="mb-2 text-gray-600 text-sm">
@@ -39,25 +39,25 @@
           <div class="mb-2 text-gray-600 text-sm">
             <strong>Address:</strong> {{ partner.address }}
           </div>
-          <div class="text-gray-600 text-sm">
-            <strong>Total Donations:</strong> {{ partner.donations_count }}
+          
+
+          
+          <div class="mb-2 text-gray-600 text-sm">
+            <strong>Level:</strong>
+            <span  class="px-2 py-1 rounded-full text-xs font-medium ml-1">
+              {{ partner.current_sponsorship?.tier?.name ?? 'none' }}
+            </span>
           </div>
 
-          <!-- Details button -->
-          <button
-            class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-            @click="viewPartner(partner)"
-          >
-            View Details
-          </button>
-          <!-- Juste après le bouton "View Details" -->
-<button
-  class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-  @click="sendRequest(partner.id)"
->
-  Send Request
-</button>
 
+          
+          <!-- Send Request button -->
+          <button
+            class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+            @click="sendRequest(partner.id)"
+          >
+            Send Request
+          </button>
         </div>
       </section>
     </div>
@@ -65,19 +65,47 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { router } from '@inertiajs/vue3'
+import Header from '@/Components/Header.vue'
+
 
 const props = defineProps({
-  partners: Array
+  partners: Array,
+  sponsorshipTiers: Array,
 })
+
+
+
+
+
+// Fonction pour styliser le badge du tier
+const getTierBadgeClass = (tierName) => {
+  switch (tierName.toLowerCase()) {
+    case 'bronze':
+      return 'bg-orange-200 text-orange-800'
+    case 'silver':
+      return 'bg-gray-200 text-gray-800'
+    case 'gold':
+      return 'bg-yellow-200 text-yellow-800'
+    case 'platinum':
+      return 'bg-purple-200 text-purple-800'
+    case 'diamond':
+      return 'bg-blue-200 text-blue-800'
+    case 'none':
+      return 'bg-red-200 text-red-800'
+    default:
+      return 'bg-gray-100 text-gray-600'
+  }
+}
+
 
 const sendRequest = (partnerId) => {
   if (confirm('Do you want to send a partnership request to this partner?')) {
     router.post('/partner-requests/send', { partner_id: partnerId }, {
       onSuccess: () => {
         alert('Request sent successfully!');
-        router.reload();  // Optionnel, pour rafraîchir la page après envoi
+        router.reload();
       },
       onError: (error) => {
         console.error('Error:', error);
@@ -87,37 +115,11 @@ const sendRequest = (partnerId) => {
   }
 }
 
-
-/**
- * Filtrer uniquement les partenaires approuvés
- */
 const approvedPartners = computed(() =>
-  props.partners.filter(p => p.status === 'approved')
+  props.partners?.filter(p => p.status === 'approved') || []
 )
 
-/**
- * Styliser le badge de niveau
- */
-const getLevelColor = (level) => {
-  switch (level) {
-    case 1:
-      return 'bg-gray-200 text-gray-800'
-    case 2:
-      return 'bg-blue-200 text-blue-800'
-    case 3:
-      return 'bg-purple-200 text-purple-800'
-    default:
-      return 'bg-gray-200 text-gray-800'
-  }
-}
 
-/**
- * Action bouton détails
- */
-const viewPartner = (partner) => {
-  console.log('Selected partner:', partner)
-  // ou utiliser router.visit(`/partners/${partner.id}`) plus tard
-}
 </script>
 
 <style scoped>

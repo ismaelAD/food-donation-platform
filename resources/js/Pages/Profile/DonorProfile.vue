@@ -7,21 +7,11 @@
       style="z-index: -1;"
     />
     <div class="max-w-7xl mx-auto px-4 py-6">
-      <!-- Back to Dashboard Button -->
-      <div class="mb-6 flex justify-start">
-        <a
-          href="/dashboard"
-          class="inline-flex items-center px-5 py-2 bg-emerald-500 text-white rounded-xl font-medium shadow hover:bg-emerald-600 transition-all duration-200"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back
-        </a>
-      </div>
+      <Header/>
+
 
       <!-- Header -->
-  <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-green-100 p-8 mb-8">
+  <div class="bg-white/80 backdrop-blur-sm  shadow-lg border border-green-100 p-8 mb-8">
     <div class="flex items-center justify-center mb-6">
       <div class="w-20 h-20 rounded-full overflow-hidden border-4 border-green-400">
         <img
@@ -77,20 +67,6 @@
             <div class="bg-emerald-100 p-3 rounded-full">
               <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-green-100 p-6 hover:shadow-xl transition-all duration-300">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-green-600 text-sm font-medium">{{ user.role === 'organization' ? 'Received Donations' : 'Contributions Made' }}</p>
-              <p class="text-3xl font-bold text-gray-800">{{ user.role === 'organization' ? totalReceivedDonations : totalContributions }}</p>
-            </div>
-            <div class="bg-blue-100 p-3 rounded-full">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
               </svg>
             </div>
           </div>
@@ -392,7 +368,7 @@
         </div>
       </div>
 
-<!-- Contributions Made Section (For non-organizations) -->
+     <!-- Contributions Made Section (For non-organizations) -->
       <div v-if="user.role !== 'organization'" class="grid grid-cols-1 gap-8 mt-8">
         <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-green-100 p-6">
           <div class="flex items-center mb-6">
@@ -464,7 +440,7 @@
 
       </div>
       <!-- Profile Image Update Section -->
-<div class="grid grid-cols-1 gap-8 mt-8">
+<div class="max-w-3xl mx-auto px-4 py-8">
   <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-green-100 p-6">
     <div class="flex items-center mb-6">
       <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -523,6 +499,8 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useForm } from '@inertiajs/vue3'
+import Header from '@/Components/Header.vue'
+
 
 const props = defineProps({
   user: Object,

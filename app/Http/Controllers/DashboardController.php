@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Donation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Partner;
 
 class DashboardController extends Controller
 {
@@ -66,12 +67,53 @@ class DashboardController extends Controller
 
             return false;
         })->values();
+        $sponsors = Partner::whereHas('sponsorship', function ($q) {
+        $q->where('status', 'active')
+          ->where('end_at', '>', now());
+    })
+    ->with(['sponsorship.tier']) // on veut aussi les infos du niveau
+    ->get()
+    ->sortBy(function ($partner) {
+        $order = ['Platinum' => 1, 'Gold' => 2, 'Silver' => 3, 'Bronze' => 4];
+        return $order[$partner->sponsorship->tier->name] ?? 999;
+    })
+    ->values();
 
         // 4. Rendu Inertia
         return Inertia::render('Dashboard', [
             'user'             => $user,
             'donations'        => $donations,
             'matchedDonations' => $matched,
+            'sponsors' => $sponsors,    
         ]);
     }
+     public function getSponsors()
+{
+    $today = Carbon::today();
+    
+    // Debug 1: Vérifier la date
+    \Log::info('Today date: ' . $today);
+    
+    $sponsors = Sponsorship::with(['partner', 'tier', 'images'])
+        ->where('status', 'active')
+
+        ->get();
+    
+    // Debug 2: Vérifier le nombre de résultats
+    \Log::info('Sponsors count: ' . $sponsors->count());
+    
+    // Debug 3: Vérifier la structure des données
+    \Log::info('First sponsor structure: ', $sponsors->first() ? $sponsors->first()->toArray() : []);
+    
+    // Debug 4: Vérifier les relations
+    if ($sponsors->first()) {
+        \Log::info('Partner loaded: ' . ($sponsors->first()->partner ? 'Yes' : 'No'));
+        \Log::info('Tier loaded: ' . ($sponsors->first()->tier ? 'Yes' : 'No'));
+        \Log::info('Images loaded: ' . ($sponsors->first()->images ? 'Yes' : 'No'));
+    }
+    
+            return Inertia::render('dashboard', [
+            'sponsors'=> $sponsors,
+
+        ]);}
 }

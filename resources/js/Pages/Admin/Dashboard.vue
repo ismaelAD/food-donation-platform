@@ -4,12 +4,20 @@
     <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-gray-900">Admin Dashboard</h1>
+      <div>
         <a
           href="/dashboard"
           class="px-5 py-2 bg-emerald-500 text-white rounded-xl font-medium shadow hover:bg-emerald-600 transition-all duration-200"
-        >
+          >
           Home
         </a>
+                <a
+          href="/admin/sponsorships"
+          class="px-5 py-2 bg-emerald-500 text-white rounded-xl font-medium shadow hover:bg-emerald-600 transition-all duration-200"
+          >
+          Sponsor 
+        </a>
+        </div>
       </div>
     </header>
 

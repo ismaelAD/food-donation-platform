@@ -1,29 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-blue-50">
-    <!-- NAVBAR -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-white/20 shadow-sm">
-      <div class="max-w-7xl mx-auto px-6 py-4">
-        <div class="flex items-center justify-between">
-          <!-- Logo -->
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-              <span class="text-white font-bold text-lg">FS</span>
-            </div>
-            <span class="text-xl font-bold text-gray-800">FoodShare</span>
-          </div>
-          
-          <!-- Back Button -->
-          <button 
-            @click="goBack"
-            class="flex items-center space-x-2 px-4 py-2 bg-white/60 hover:bg-white/80 border border-gray-200 rounded-xl transition-all duration-200 hover:shadow-md">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-            </svg>
-            <span class="text-gray-700 font-medium">Back</span>
-          </button>
-        </div>
-      </div>
-    </nav>
+    <Header />
 
     <!-- CONTENU PRINCIPAL -->
     <div class="pt-24 pb-16 px-4">
@@ -233,8 +210,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
           </div>
-          <h3 class="text-2xl font-semibold text-gray-600 mb-2">Aucune correspondance trouvée</h3>
-          <p class="text-gray-500">Ajustez vos préférences pour voir des suggestions personnalisées</p>
+          <h3 class="text-2xl font-semibold text-gray-600 mb-2">No match found</h3>
+          <p class="text-gray-500">Add your preferences to see matched donation</p>
         </div>
       </div>
     </div>
@@ -263,6 +240,8 @@
 import { reactive, computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { Inertia } from '@inertiajs/inertia'
+import Header from '@/Components/Header.vue'
+
 
 const props = defineProps({
   preferences: Object,

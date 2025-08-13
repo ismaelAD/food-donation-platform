@@ -21,6 +21,9 @@ use App\Http\Controllers\FoodRequestController;
 use App\Http\Controllers\ContributionController;
 use App\Http\Controllers\DonationMapController;
 use App\Http\Controllers\PartnerRequestController;
+use App\Http\Controllers\SponsorshipController;
+
+
 
 
 
@@ -94,6 +97,22 @@ Route::middleware('auth')->group(function () {
           Route::post('/food-requests/respond', [FoodRequestController::class, 'respond']);
      Route::delete('/notifications/{notification_id}', [NotificationController::class, 'destroy']);
      Route::post('/profile/update-image', [ProfileController::class, 'updateImage'])->name('profile.update-image');
+     Route::get  ('/sponsorships/create', [SponsorshipController::class, 'create'])
+         ->name('sponsorships.create');
+    Route::post ('/sponsorships',        [SponsorshipController::class, 'store'])
+         ->name('sponsorships.store');
+         Route::get('/sponsors', [DashboardController::class, 'getSponsors']);
+             Route::get('/sponsorships/create', [SponsorshipController::class, 'create'])
+         ->name('sponsorships.create');
+    Route::post('/sponsorships',      [SponsorshipController::class, 'store'])
+         ->name('sponsorships.store');  
+
+
+    // ADMIN : liste des demandes et actions
+    Route::get  ('/admin/sponsorships',       [SponsorshipController::class, 'index'])
+         ->name('admin.sponsorships.index');
+    Route::post ('/admin/sponsorships/{id}',  [SponsorshipController::class, 'update'])
+         ->name('admin.sponsorships.update');
 
     //–– Admin ––//
     // Tableau de bord admin

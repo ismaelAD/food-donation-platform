@@ -61,11 +61,26 @@
       </div>
     </nav>
 
+  <section class="my-10 relative z-20">
+    <h2 class="text-2xl font-bold mb-4 text-center text-white">
+  Our Sponsors
+</h2>
+
+    <div class="max-w-screen-md mx-auto">
+      <img
+        :src="currentImage"
+        :alt="`Sponsor ${currentIndex + 1}`"
+        class="w-full max-h-48 object-contain"
+        @error="handleImageError"
+      />
+    </div>
+  </section>
+
     <!-- CONTENU PRINCIPAL -->
   <div class="flex-grow relative z-10">
     <div class="max-w-7xl mx-auto px-6 py-8 relative z-10">
                  <!-- Quick Navigation -->
-      <div class="max-w-4xl mx-auto px-70 py-10 relative z-10">   
+      <div class="max-w-5xl mx-auto px-70 py-10 relative z-10">   
       <div class="bg-white p-6 rounded-2xl mb-17 shadow-lg border border-gray-200">
         <div class="flex flex-wrap gap-3 justify-center">
           <a href="/dashboard2" class="flex items-center px-6 py-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300 text-gray-700 font-medium border border-gray-200">
@@ -80,23 +95,48 @@
             </svg>
             My Donations
           </a>
-          <a href="/food-requests" class="flex items-center px-6 py-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300 text-gray-700 font-medium border border-gray-200">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-            My Request
-          </a>
-          <a href="/partners" class="flex items-center px-6 py-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300 text-gray-700 font-medium border border-gray-200">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h4a1 1 0 011 1v5m-6 0h6"></path>
-            </svg>
-            Partners
-          </a>
+<a
+  v-if="user.role !== 'receiver'"
+  href="/food-requests"
+  class="flex items-center px-6 py-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300 text-gray-700 font-medium border border-gray-200"
+>
+  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h4a1 1 0 011 1v5m-6 0h6"
+    />
+  </svg>
+  My requests
+</a>
+<a
+  v-if="user.role !== 'receiver'"
+  href="/partners"
+  class="flex items-center px-6 py-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300 text-gray-700 font-medium border border-gray-200"
+>
+  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h4a1 1 0 011 1v5m-6 0h6"
+    />
+  </svg>
+  Partners
+  </a>
+
           <a href="/preferences" class="flex items-center px-6 py-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300 text-gray-700 font-medium border border-gray-200">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h4a1 1 0 011 1v5m-6 0h6"></path>
             </svg>
             Matching
+          </a>
+                    <a href="/sponsorships/create" class="flex items-center px-6 py-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-300 text-gray-700 font-medium border border-gray-200">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h4a1 1 0 011 1v5m-6 0h6"></path>
+            </svg>
+            Sponsor
           </a>
         </div>
       </div>
@@ -443,7 +483,8 @@
         </button>
       </div>
     </div>
-</div>
+
+  
     <!-- FOOTER -->
     <footer class="bg-gray-900 text-gray-200 py-10 mt-8 z-10">
       <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -463,21 +504,77 @@
     </footer>
     </div>
     </div>
-    
+
+
+ </div> 
 </template>
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Link, usePage, router } from '@inertiajs/vue3'
+import axios from 'axios'
+//import { Carousel, Slide } from '@ismail9k/vue3-carousel'
+import { Splide, SplideSlide } from '@splidejs/vue-splide'
+import '@splidejs/vue-splide/css'
+
+
+
 
 const page = usePage()
 const unreadCount = computed(() => page.props.auth.unread_notifications || 0)
+const sponsors = ref([])
 
 const props = defineProps({
   user: Object,
   donations: Array,
-  matchedDonations: Array
+  matchedDonations: Array,
+  sponsorsByLevel: Object,
+  sponsors: Array,
+
+})
+const images = ref([
+  '/Turkcell-Logo.jpg',
+  '/samsung1.webp',
+  '/turkcelbaniere.png', 
+  '/samsung2.jpg',
+
+])
+const currentIndex = ref(0)
+const currentImage = ref('')
+let interval = null
+
+// Fonction pour passer à l'image suivante
+const nextImage = () => {
+  currentIndex.value = (currentIndex.value + 1) % images.value.length
+  currentImage.value = images.value[currentIndex.value]
+}
+
+// Gestion d'erreur d'image
+const handleImageError = () => {
+  console.log('Erreur de chargement pour:', currentImage.value)
+}
+
+const sponsorImages = ref([])
+onMounted(() => {
+
+  if (images.value.length > 0) {
+    currentImage.value = images.value[0]
+    
+    // Démarrer le carousel avec un délai de 3 secondes
+    interval = setInterval(nextImage, 3000)
+  }
+  router.reload({ only: ['matchedDonations'] })
+
 })
 
+watch(() => props.user.preference, () => {
+  router.reload({ only: ['matchedDonations'] })
+})
+
+onUnmounted(() => {
+  if (interval) {
+    clearInterval(interval)
+  }
+})
 // Pagination for regular donations
 const currentPage = ref(1)
 const perPage = 6
@@ -592,3 +689,12 @@ function refreshDonations() {
   router.reload()
 }
 </script>
+<style scoped>
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

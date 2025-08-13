@@ -88,7 +88,7 @@ class DonationController extends Controller
         'unit'            => 'required|string',
         'latitude'        => 'nullable|numeric',
         'longitude'       => 'nullable|numeric',
-        'available_from'  => 'nullable|date_format:H:i',
+        'available_from'  => 'nullable|date_format:Y-m-d\TH:i',
         'available_to'    => 'nullable|date_format:H:i',
         'available_until' => 'required|date|after:now',
         'expiration_date' => 'nullable|date|after_or_equal:today',

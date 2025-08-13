@@ -7,6 +7,7 @@
   class="fixed inset-0 w-full h-full object-cover opacity-40 pointer-events-none select-none"
   style="z-index: -1;"
 />
+    <Header />
     <!-- L'arrière‑plan avec overlay -->
     <div class="absolute inset-0">
 
@@ -21,18 +22,7 @@
       <div class="w-full max-w-5xl">
         <!-- Header breadcrumb -->
         <div class="mb-8 text-center">
-<!-- return button -->
-<div class="text-left mt-8">
-  <button
-    @click="goBack"
-    class="inline-flex items-center bg-white/80 backdrop-blur-sm hover:bg-white/90 text-gray-700 px-6 py-3 rounded-full font-medium transition-all duration-300 hover:shadow-lg"
-  >
-    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-      <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
-    </svg>
-    Back
-  </button>
-</div>
+
 
         </div>
 
@@ -198,6 +188,8 @@
 <script setup>
 import { router } from '@inertiajs/vue3'
 import { defineProps } from 'vue'
+import Header from '@/Components/Header.vue'
+
 
 const goBack = () => {
   window.history.length > 1 ? window.history.back() : window.location.href = '/dashboard'
