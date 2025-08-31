@@ -56,6 +56,27 @@
             <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">{{ form.errors.description }}</p>
             <p class="mt-1 text-sm text-gray-500">Optional: Provide more details about your food needs</p>
           </div>
+                    <!-- Paypal link Field -->
+<div>
+  <label for="paypal_link" class="block text-sm font-semibold text-gray-700 mb-2">
+    PayPal Link
+  </label>
+  <input 
+    id="paypal_link"
+    v-model="form.paypal_link" 
+    type="url"
+    placeholder="https://www.paypal.com/..."
+    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm 
+           focus:outline-none focus:ring-2 focus:ring-emerald-500 
+           focus:border-emerald-500 transition-colors"
+    :class="{ 'border-red-300 focus:ring-red-500 focus:border-red-500': form.errors.paypal_link }"
+  />
+  <p v-if="form.errors.paypal_link" class="mt-1 text-sm text-red-600">{{ form.errors.paypal_link }}</p>
+  <p class="mt-1 text-sm text-gray-500">
+    Provide the PayPal link where you want to receive contributions.
+  </p>
+</div>
+
 
           <!-- Two Column Layout for Numbers -->
           <div class="grid md:grid-cols-2 gap-6">
@@ -206,6 +227,7 @@ const form = useForm({
   quantity: null,
   target_amount: null,
   needed_before: null,
+  paypal_link: '',
 })
 
 // Set minimum datetime to now

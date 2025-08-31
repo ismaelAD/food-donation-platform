@@ -1,4 +1,5 @@
 <template>
+  <Header/>
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
   <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
     
@@ -50,10 +51,11 @@
 
 <script setup>
 import { Link } from '@inertiajs/vue3'
+import Header from '@/Components/Header.vue'
 
-const props = defineProps({
-  requests: Array
-})
+
+const props = defineProps({ requests: [Array, Object] })
+
 
 function goBack() {
   if (window.history.length > 1) {

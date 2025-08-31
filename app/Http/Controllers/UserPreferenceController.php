@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\UserPreference;
+use App\Models\Donation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,19 +13,50 @@ class UserPreferenceController extends Controller
      * Affiche le formulaire de préférences et les matches
      */
     public function index()
-    {
-        $prefs = auth()->user()->preference;
-        
-        // Récupère aussi les catégories disponibles et matched donations si besoin
-        $categories = ['Fruits', 'Vegetables', 'Meals', 'Desserts']; // ou depuis config/db
-        $matched = []; // on peut peupler via un service de matching ici
+{
+    $prefs = auth()->user()->preference;
 
-        return Inertia::render('Preferences', [
-            'preferences' => $prefs,
-            'categories'  => $categories,
-            'matched'     => $matched,
-        ]);
+    $categories = ['Fruits', 'Vegetables', 'Meals', 'Desserts'];
+    $matched = collect();
+
+    if ($prefs) {
+        $query = \App\Models\Donation::query();
+
+        // 👉 Toujours filtrer par catégories choisies (priorité absolue)
+  if (!empty($prefs->preferred_categories) || !empty($prefs->min_quantity)) {
+    $query->where(function ($q) use ($prefs) {
+        if (!empty($prefs->preferred_categories)) {
+            $q->whereIn('category', $prefs->preferred_categories);
+        }
+
+        if (!empty($prefs->min_quantity)) {
+            $q->where('quantity', '>=', $prefs->min_quantity);
+        }
+    });
+}
+
+
+        if (!empty($prefs->max_distance)) {
+            // ici tu pourras ajouter la logique de distance
+        }
+
+        // 👉 Tri dans l’ordre des préférences
+        if (!empty($prefs->preferred_categories)) {
+            $query->orderByRaw(
+                "FIELD(category, '" . implode("','", $prefs->preferred_categories) . "')"
+            );
+        }
+
+        $matched = $query->get();
     }
+
+    return Inertia::render('Preferences', [
+        'preferences' => $prefs,
+        'categories'  => $categories,
+        'matched'     => $matched,
+    ]);
+}
+
 
     /**
      * Crée les préférences
@@ -41,7 +73,6 @@ class UserPreferenceController extends Controller
 
         auth()->user()->preference()->create($data);
 
-        // Redirige via Inertia vers la même page pour rafraîchir les props
         return redirect()->route('preferences');
     }
 

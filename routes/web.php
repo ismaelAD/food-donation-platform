@@ -22,10 +22,21 @@ use App\Http\Controllers\ContributionController;
 use App\Http\Controllers\DonationMapController;
 use App\Http\Controllers\PartnerRequestController;
 use App\Http\Controllers\SponsorshipController;
+use App\Http\Controllers\DocumentRequestController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\UploadController;
+use App\Http\Controllers\PlaceController;
+use App\Http\Controllers\PlaceRequestController;
+use App\Http\Controllers\PhotoController;
+use App\Models\PlacePhoto;
 
+// Route model binding pour les photos
+Route::bind('photo', function ($value) {
+    return PlacePhoto::findOrFail($value);
+});
 
-
-
+// Votre route de suppression
+Route::delete('/photos/{photo}', [PhotoController::class, 'destroy'])->name('photos.destroy');
 
 Route::get('/', [LandingpageController::class, 'index']);
 
@@ -35,9 +46,88 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
 Route::get('/dashboard2', [LandingpageController::class, 'index']);
+   
+
 
 
 Route::middleware('auth')->group(function () {
+        Route::get('/my-places', [PlaceController::class, 'myPlaces'])->name('places.my');
+
+    Route::get('/places', [PlaceController::class, 'index'])->name('places.index'); // voir tous les lieux
+    Route::get('/places/create', [PlaceController::class, 'create'])->name('places.create');
+    Route::post('/places', [PlaceController::class, 'store']); // poster un lieu
+    Route::get('/places/{place}', [PlaceController::class, 'show']); // voir un lieu
+    Route::post('/places/{place}/request', [PlaceRequestController::class, 'store']); // demander à utiliser
+ // Place requests
+ // routes/web.php
+     Route::delete('/places/{place}', [PlaceController::class, 'destroy'])->name('places.destroy');
+
+Route::delete('/places/{place}/photos/{photo}', [PlaceController::class, 'deletePhoto']);
+Route::get('/places/{place}/edit', [PlaceController::class, 'edit'])->name('places.edit');
+    Route::put('/places/{place}', [PlaceController::class, 'update'])->name('places.update');
+    Route::delete('/places/{place}', [PlaceController::class, 'destroy'])->name('places.destroy');
+
+    Route::get('/verifications', [\App\Http\Controllers\Admin\UserVerificationController::class, 'index'])->name('admin.verifications.index');
+    Route::post('/verifications/{user}', [\App\Http\Controllers\Admin\UserVerificationController::class, 'update'])->name('admin.verifications.update');
+    Route::get('/admin/volunteers/verifications', [\App\Http\Controllers\VolunteerController::class, 'adminPendingVerifications'])->name('admin.volunteers.verifications');
+    Route::patch('/admin/volunteers/{id}/verify', [\App\Http\Controllers\VolunteerController::class, 'updateVerification'])->name('admin.volunteers.updateVerification');
+    Route::post('/volunteer/upload-document', [\App\Http\Controllers\VolunteerController::class, 'uploadDocument'])->name('volunteer.upload-document');
+    Route::post('/admin/request-document', [DocumentRequestController::class, 'store'])
+    ->middleware(['auth']); // remplace par ton middleware admin si nécessaire
+     Route::post('/admin/partners/{partner}/request-document', [PartnerController::class, 'requestDocument'])
+    ->middleware('auth');
+
+     // Admin generates request (protected by auth + admin middleware)
+Route::post('/admin/partners/{partner}/request-document', [PartnerController::class, 'requestDocument'])
+    ->middleware(['auth', 'can:admin-action']); // adapte le middleware
+
+// Public upload page (the link contains token as query param)
+Route::get('/documents/upload', function () {
+    return inertia('Documents/Upload'); // Vue page reads token from querystring
+});
+
+// Upload handler — accepts token in querystring (no auth required)
+Route::post('/documents/upload', [DocumentController::class, 'uploadWithToken'])->name('documents.upload');
+     // web.php
+Route::post('/documents/upload', [\App\Http\Controllers\DocumentController::class, 'upload'])
+    ->middleware('auth');
+    Route::get('/documents/upload-request/{token}', [DocumentController::class, 'showUploadForm'])
+    ->name('documents.upload-form');
+    Route::post('/documents/upload-request/{token}', [DocumentController::class, 'uploadWithToken'])
+    ->name('documents.upload');
+
+Route::get('/users/{id}/upload-request-document', [UploadController::class, 'showUserUpload']);
+    Route::post('/users/{id}/upload-request-document', [UploadController::class, 'uploadUserDocument']);
+    
+    Route::get('/partners/{id}/upload-request-document', [UploadController::class, 'showPartnerUpload']);
+    Route::post('/partners/{id}/upload-request-document', [UploadController::class, 'uploadPartnerDocument']);
+    
+    // Pour les admins
+    Route::middleware(['admin'])->group(function () {
+        Route::get('/documents/download/{type}/{id}', [UploadController::class, 'downloadDocument']);
+        Route::delete('/documents/{type}/{id}', [UploadController::class, 'deleteDocument']);
+    });
+    Route::post('/admin/request-documents', [AdminController::class, 'requestDocuments'])->name('admin.request-documents');
+     Route::post('/users/{user}/upload-request-document', [UserController::class, 'uploadRequestDocument']);
+     Route::post('/partners/{partner}/upload-request-document', [PartnerController::class, 'uploadRequestDocument']);
+
+    Route::get('/admin/notifications', function() {
+    $notifications = auth()->user()->notifications
+        ->where('type', 'App\\Notifications\\DocumentUploaded') // uniquement documents
+        ->map(function ($notif) {
+            return [
+                'id' => $notif->id,
+                'user_name' => $notif->data['user_name'],
+                'document_path' => $notif->data['document_path'],
+                'created_at' => $notif->created_at->toDateTimeString(),
+            ];
+        });
+
+    return $notifications;
+});
+
+
+    Route::post('/profile/update-name-privacy', [ProfileController::class, 'updateNamePrivacy'])->name('profile.updatePrivacy');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -48,6 +138,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/donations/create', function () {
         return Inertia::render('Donations/CreateDonation');
     });
+//Route::get('/documents/upload', [DocumentController::class, 'create'])->name('documents.upload');
+Route::post('/documents/upload', [DocumentController::class, 'store'])->name('documents.store');
     Route::post('/donations', [DonationController::class, 'store']);
     Route::get('/distributions',[DistributionController::class,'index'])->name('distributions');
     Route::get('/pickups',     [PickupController::class,      'index'])->name('pickups');

@@ -58,8 +58,21 @@
               @click="toggleUserMenu"
               class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
             >
-              <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                {{ userInitials }}
+              <!-- Photo de profil ou avatar par défaut -->
+              <div class="w-8 h-8 rounded-full overflow-hidden ring-2 ring-green-200 flex items-center justify-center">
+                <img 
+                  v-if="user?.profile_image" 
+                  :src="`/storage/${user.profile_image}`"
+                  :alt="`${user.name} profile picture`"
+                  class="w-full h-full object-cover"
+                  @error="handleImageError"
+                />
+                <div 
+                  v-else 
+                  class="w-full h-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-sm font-medium"
+                >
+                  {{ userInitials }}
+                </div>
               </div>
               <component :is="ChevronDownIcon" class="w-4 h-4 text-gray-500" />
             </button>
@@ -77,8 +90,31 @@
                 v-if="showUserMenu" 
                 class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
               >
+                <!-- En-tête du menu avec info utilisateur -->
+                <div class="px-4 py-3 border-b border-gray-100">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-green-200 flex-shrink-0">
+                      <img 
+                        v-if="user?.profile_image" 
+                        :src="`/storage/${user.profile_image}`"
+                        :alt="`${user.name} profile picture`"
+                        class="w-full h-full object-cover"
+                        @error="handleImageError"
+                      />
+                      <div 
+                        v-else 
+                        class="w-full h-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-sm font-medium"
+                      >
+                        {{ userInitials }}
+                      </div>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-medium text-gray-900 truncate">{{ user?.name }}</p>
+                      <p class="text-xs text-gray-500 truncate">{{ user?.email }}</p>
+                    </div>
+                  </div>
+                </div>
 
-                
                 <Link 
                   v-for="item in userMenuItems" 
                   :key="item.href"
@@ -126,6 +162,29 @@
       >
         <div v-if="showMobileMenu" class="lg:hidden border-t border-gray-200 bg-white/95 backdrop-blur-sm">
           <div class="px-2 pt-2 pb-3 space-y-1">
+            <!-- Profil utilisateur en haut du menu mobile -->
+            <div class="flex items-center px-3 py-3 mb-2 bg-gray-50 rounded-lg">
+              <div class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-green-200 flex-shrink-0">
+                <img 
+                  v-if="user?.profile_image" 
+                  :src="`/storage/${user.profile_image}`"
+                  :alt="`${user.name} profile picture`"
+                  class="w-full h-full object-cover"
+                  @error="handleImageError"
+                />
+                <div 
+                  v-else 
+                  class="w-full h-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-sm font-medium"
+                >
+                  {{ userInitials }}
+                </div>
+              </div>
+              <div class="ml-3 min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-900 truncate">{{ user?.name }}</p>
+                <p class="text-xs text-gray-500 truncate">{{ user?.email }}</p>
+              </div>
+            </div>
+
             <!-- Menu principal mobile -->
             <Link 
               v-for="item in allMenuItems" 
@@ -187,10 +246,24 @@ const props = defineProps({
     default: null
   }
 })
-
+console.log('User data:', props.user)
+console.log('Profile image:', props.user?.profile_image)
 const showMobileMenu = ref(false)
 const showUserMenu = ref(false)
 const userMenuRef = ref(null)
+const page = usePage()
+const user = computed(() => props.user || page.props.auth?.user)
+
+// Utilisez 'user' au lieu de 'props.user' dans vos computed et template
+const userInitials = computed(() => {
+  if (!user.value?.name) return 'U'
+  return user.value.name
+    .split(' ')
+    .map(word => word.charAt(0))
+    .join('')
+    .substring(0, 2)
+    .toUpperCase()
+})
 
 const { url } = usePage()
 
@@ -207,21 +280,16 @@ const userMenuItems = [
   { href: '/profile/donor', label: 'Profile', icon: UserIcon },
   { href: '/preferences', label: 'Preferences', icon: Cog6ToothIcon },
   { href: '/sponsorships/create', label: 'Sponsor', icon: CurrencyDollarIcon },
-  { href: '/volunteer/needs', label: 'Volunteer', icon: UserGroupIcon }
+  { href: '/volunteer/needs', label: 'Volunteer', icon: UserGroupIcon },
+  { href: '/places/create', label: 'Add a Place', icon: UserGroupIcon },
+  { href: '/places', label: 'Places', icon: UserGroupIcon },
+  { href: '/my-places', label: 'My Places', icon: UserGroupIcon },
 ]
 
 const allMenuItems = [...mainMenuItems, ...userMenuItems]
 
-// Computed
-const userInitials = computed(() => {
-  if (!props.user?.name) return 'U'
-  return props.user.name
-    .split(' ')
-    .map(word => word.charAt(0))
-    .join('')
-    .substring(0, 2)
-    .toUpperCase()
-})
+
+
 
 // Méthodes
 const isCurrentRoute = (href) => {
@@ -246,6 +314,12 @@ const toggleUserMenu = () => {
 const logout = () => {
   // Implémentation du logout selon votre système d'auth
   window.location.href = '/logout'
+}
+
+const handleImageError = (event) => {
+  // En cas d'erreur de chargement de l'image, on cache l'élément img
+  // et l'avatar avec initiales sera affiché à la place
+  event.target.style.display = 'none'
 }
 
 const closeMenus = (event) => {

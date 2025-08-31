@@ -12,7 +12,10 @@ use App\Models\UserPreference;
 use App\Models\partner;
 use App\Controller\PartnerController;
 use App\Controller\ProfileController;
+use App\Models\Place;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+USE Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 
 
@@ -103,5 +106,13 @@ class User extends Authenticatable
     return $this->hasMany(PartnerRequest::class, 'user_id')
                 ->where('status', 'approved');
 }
+public function volunteer()
+{
+    return $this->hasOne(\App\Models\Volunteer::class);
+}
 
+public function places(): HasMany
+{
+    return $this->hasMany(Place::class);
+}
 }

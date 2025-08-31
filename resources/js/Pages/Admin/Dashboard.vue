@@ -1,25 +1,31 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
-      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-gray-900">Admin Dashboard</h1>
-      <div>
-        <a
-          href="/dashboard"
-          class="px-5 py-2 bg-emerald-500 text-white rounded-xl font-medium shadow hover:bg-emerald-600 transition-all duration-200"
-          >
-          Home
-        </a>
-                <a
-          href="/admin/sponsorships"
-          class="px-5 py-2 bg-emerald-500 text-white rounded-xl font-medium shadow hover:bg-emerald-600 transition-all duration-200"
-          >
-          Sponsor 
-        </a>
-        </div>
-      </div>
-    </header>
+<!-- Header -->
+<header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <h1 class="text-2xl font-semibold text-gray-900">Admin Dashboard</h1>
+    <div class="flex space-x-4"> <!-- Added space-x-4 for spacing between buttons -->
+      <a
+        href="/dashboard"
+        class="px-5 py-2 bg-emerald-500 text-white rounded-xl font-medium shadow hover:bg-emerald-600 transition-all duration-200"
+      >
+        Home
+      </a>
+      <a
+        href="/admin/sponsorships"
+        class="px-5 py-2 bg-emerald-500 text-white rounded-xl font-medium shadow hover:bg-emerald-600 transition-all duration-200"
+      >
+        Sponsor
+      </a>
+      <a
+        href="/verifications"
+        class="px-5 py-2 bg-emerald-500 text-white rounded-xl font-medium shadow hover:bg-emerald-600 transition-all duration-200"
+      >
+        Volunteers
+      </a>
+    </div>
+  </div>
+</header>
 
     <div class="max-w-7xl mx-auto px-6 py-8">
       <!-- Key Metrics -->
@@ -107,6 +113,8 @@
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requests</th>
+
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -126,7 +134,21 @@
                     >
                       Delete
                     </button>
+
                   </td>
+                  
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <button
+                    @click="openRequestModal('user', user.id)"
+                    class="text-indigo-600 hover:text-indigo-900 font-medium"
+                  >
+                  Request Docs
+                  </button>
+                  </td>
+
+
+
+
                 </tr>
               </tbody>
             </table>
@@ -171,6 +193,27 @@
             </div>
           </div>
         </section>
+          <!-- Modal -->
+<!-- Modal: affiche note et envoie la demande au serveur -->
+<div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+  <div class="bg-white rounded-lg p-6 w-full max-w-md">
+    <h3 class="text-lg font-medium mb-2">Request documents for {{ modalEntityType }} #{{ modalEntityId }}</h3>
+    <textarea v-model="note" rows="4" class="w-full border p-2 mb-3" placeholder="Write a note (optional)"></textarea>
+
+    <div class="flex justify-end space-x-2">
+      <button @click="closeModal" class="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+      <button @click="sendRequest" :disabled="sending" class="px-4 py-2 bg-emerald-600 text-white rounded">
+        <span v-if="sending">Sending...</span>
+        <span v-else>Send request</span>
+      </button>
+    </div>
+
+    <div v-if="errors.general" class="text-red-600 mt-3">{{ errors.general }}</div>
+    <div v-if="errors.note" class="text-red-600 mt-1">{{ errors.note }}</div>
+  </div>
+</div>
+
+
 
         <!-- Donations Table -->
         <section class="bg-white rounded-lg border border-gray-200">
@@ -286,6 +329,7 @@
       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donations</th>
       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document</th>
       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requests</th>
     </tr>
   </thead>
   <tbody class="bg-white divide-y divide-gray-200">
@@ -320,8 +364,48 @@
           <option value="suspended">Suspended</option>
         </select>
       </td>
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+<!-- bouton Request Docs (dans la ligne partner) -->
+<button
+  @click="openRequestModal('partner', p.id)"
+  class="text-indigo-600 hover:text-indigo-900 font-medium"
+>
+  Request Docs
+</button>
+
+</td>
     </tr>
   </tbody>
+            <!-- Modal -->
+<!-- Modal - Version corrigée -->
+<div v-if="showModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+  <div class="bg-white rounded-lg p-6 w-full max-w-md">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Request Additional Documents</h3>
+    <textarea
+      v-model="note"
+      class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+      rows="4"
+      placeholder="Write your note for the user/partner..."
+    ></textarea>
+    <div class="flex justify-end space-x-2 mt-4">
+      <button 
+        @click="closeModal" 
+        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors duration-200"
+      >
+        Cancel
+      </button>
+      <button 
+        @click="sendRequest" 
+        class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded transition-colors duration-200"
+        :disabled="!note.trim()"
+        :class="{ 'opacity-50 cursor-not-allowed': !note.trim() }"
+      >
+        Send
+      </button>
+    </div>
+  </div>
+</div>
+
 </table>
 
           </div>
@@ -367,6 +451,14 @@
         </section>
       </div>
     </div>
+    <!-- parent template -->
+<UploadDocument
+  v-if="showModal"
+  :entity-type="modalEntityType"
+  :entity-id="modalEntityId"
+  @close="showModal = false"
+/>
+
   </div>
 </template>
 
@@ -379,6 +471,14 @@ const props = defineProps({
   donations: Array,
   partners: Array
 })
+
+// Variables pour le modal
+const showModal = ref(false)
+const note = ref("")
+const modalType = ref(null)
+const modalId = ref(null)
+const sending = ref(false)
+const errors = ref({})
 
 // Filtres et pagination pour les utilisateurs
 const userFilters = ref({
@@ -445,6 +545,42 @@ const paginatedPartners = computed(() => {
   const end = start + parseInt(partnerFilters.value.perPage)
   return props.partners.slice(start, end)
 })
+
+// Fonction pour ouvrir le modal
+
+function openRequestModal(type, id) {
+  modalType.value = type
+  modalId.value = id
+  note.value = ''
+  showModal.value = true
+}
+
+// Fonction pour fermer le modal
+function closeModal() {
+  showModal.value = false
+
+}
+
+function sendRequest() {
+  if (!modalType.value || !modalId.value) { alert('Missing'); return }
+  sending.value = true
+  router.post('/admin/request-document', {
+    type: modalType.value,
+    id: modalId.value,
+    note: note.value
+  }, {
+    onSuccess: () => {
+      sending.value = false
+      showModal.value = false
+      alert('Request sent')
+    },
+    onError: (err) => {
+      sending.value = false
+      console.error(err)
+      alert('Failed to send request')
+    }
+  })
+}
 
 // Fonctions pour la pagination des utilisateurs
 function updateUserPagination() {

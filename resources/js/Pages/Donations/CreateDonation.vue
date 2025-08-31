@@ -35,6 +35,27 @@
                 />
               </div>
 
+              <!-- Category -->
+<div class="form-group">
+  <label class="block text-sm font-semibold text-gray-700 mb-2">
+    Category
+  </label>
+  <select
+    v-model="form.category"
+    required
+    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+  >
+    <option disabled value="">Select a Category</option>
+    <option value="Desserts">Desserts</option>
+    <option value="Meals">Meals</option>
+    <option value="Vegetables">Vegetables</option>
+    <option value="Fruits">Fruits</option>
+    <option value="Others">Others</option>
+
+  </select>
+</div>
+
+
               <!-- Description -->
               <div class="form-group">
                 <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -208,6 +229,7 @@ import Header from '@/Components/Header.vue'
 // Form data
 const form = ref({
   title: '',
+  category: '',
   description: '',
   quantity: 1,
   unit: '',

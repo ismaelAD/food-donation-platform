@@ -19,6 +19,7 @@
           v-for="donation in donations"
           :key="donation.id"
           class="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-xl hover:border-green-200 transition-all duration-300 relative overflow-hidden"
+          :class="{ 'opacity-75': isExpired(donation.expiration_date) }"
         >
           <!-- Badge urgent si proche de l'expiration -->
           <div 
@@ -28,8 +29,21 @@
             URGENT
           </div>
 
+          <!-- Badge expired si expiré -->
+          <div 
+            v-if="isExpired(donation.expiration_date)"
+            class="absolute top-3 right-3 bg-gray-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm z-10"
+          >
+            EXPIRED
+          </div>
+
           <!-- Barre de couleur en haut -->
-          <div class="h-1 bg-gradient-to-r from-green-400 to-green-500"></div>
+          <div 
+            class="h-1"
+            :class="isExpired(donation.expiration_date) 
+              ? 'bg-gradient-to-r from-gray-400 to-gray-500' 
+              : 'bg-gradient-to-r from-green-400 to-green-500'"
+          ></div>
 
           <div class="p-6">
             <h2 class="text-xl font-bold text-gray-800 mb-2 leading-tight">{{ donation.title }}</h2>
@@ -50,7 +64,13 @@
               </div>
               <div class="flex items-center text-sm">
                 <span class="text-gray-800 font-medium w-16">Expires:</span>
-                <span class="text-gray-600" :class="{ 'text-red-600 font-medium': isUrgent(donation.expiration_date) }">
+                <span 
+                  class="text-gray-600" 
+                  :class="{ 
+                    'text-red-600 font-medium': isUrgent(donation.expiration_date),
+                    'text-gray-500 line-through': isExpired(donation.expiration_date)
+                  }"
+                >
                   {{ formatDate(donation.expiration_date) }}
                 </span>
               </div>
@@ -97,11 +117,22 @@
               <div class="flex gap-2">
                 <!-- Bouton Edit -->
                 <Link 
+                  v-if="!isExpired(donation.expiration_date)"
                   :href="`/donations/${donation.id}/edit`" 
                   class="bg-green-500 hover:bg-green-600 text-white text-xs font-medium px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-sm"
                 >
                   Edit
                 </Link>
+                
+                <!-- Bouton Edit Disabled -->
+                <button 
+                  v-else
+                  disabled
+                  class="bg-gray-300 text-gray-500 text-xs font-medium px-4 py-2 rounded-lg cursor-not-allowed shadow-sm"
+                  title="Cannot edit expired donation"
+                >
+                  Edit
+                </button>
                 
                 <!-- Bouton Delete -->
                 <button 
@@ -114,9 +145,19 @@
 
               <!-- Bouton Request Volunteers -->
               <button
-                v-if="!editingNeeds[donation.id]"
+                v-if="!editingNeeds[donation.id] && !isExpired(donation.expiration_date)"
                 @click="startNeeds(donation.id)"
                 class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-lg transition-all duration-200 shadow-sm"
+              >
+                {{ donation.need_volunteers > 0 ? 'Update Need' : 'Request Volunteers' }}
+              </button>
+
+              <!-- Bouton Request Volunteers Disabled -->
+              <button
+                v-if="!editingNeeds[donation.id] && isExpired(donation.expiration_date)"
+                disabled
+                class="bg-gray-300 text-gray-500 text-xs font-medium px-3 py-1 rounded-lg cursor-not-allowed shadow-sm"
+                title="Cannot request volunteers for expired donation"
               >
                 {{ donation.need_volunteers > 0 ? 'Update Need' : 'Request Volunteers' }}
               </button>
@@ -153,13 +194,13 @@ const props = defineProps({
   donations: Array
 })
 
-// Track which donation is in “request volunteers” edit mode
+// Track which donation is in "request volunteers" edit mode
 const editingNeeds = ref({})
 
 // Temp store of need_volunteers & volunteer_note per donation
 const needs = ref({})
 
-// When user clicks “Request Volunteers” or “Update Need”
+// When user clicks "Request Volunteers" or "Update Need"
 function startNeeds(id) {
   editingNeeds.value[id] = true
   needs.value[id] = {
@@ -206,6 +247,14 @@ const isUrgent = (exp) => {
   const expiration = new Date(exp)
   const diffDays = Math.ceil((expiration - now)/(1000*60*60*24))
   return diffDays <= 1 && diffDays >= 0
+}
+
+// New function to check if donation is expired
+const isExpired = (exp) => {
+  if (!exp) return false
+  const now = new Date()
+  const expiration = new Date(exp)
+  return now > expiration
 }
 
 function confirmDelete(donation) {

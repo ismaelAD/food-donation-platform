@@ -128,6 +128,8 @@ $partner->user->notify(new PartnershipRequestReceived($organization));
             'quantity'      => 'nullable|integer|min:1',
             'target_amount' => 'nullable|numeric|min:0',
             'needed_before' => 'nullable|date|after:now',
+            'paypal_link' => 'nullable|url',
+
         ]);
 
         $request->user()->foodRequests()->create($data);

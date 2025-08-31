@@ -439,12 +439,13 @@
         
 
       </div>
-      <!-- Profile Image Update Section -->
+<!-- Profile Image Update Section -->
 <div class="max-w-3xl mx-auto px-4 py-8">
   <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-green-100 p-6">
     <div class="flex items-center mb-6">
       <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
       </svg>
       <h2 class="text-xl font-semibold text-gray-800">Update your profile picture</h2>
     </div>
@@ -452,31 +453,42 @@
     <div class="max-w-md mx-auto">
       <form @submit.prevent="submit" enctype="multipart/form-data" class="space-y-6">
         <div class="flex flex-col items-center space-y-4">
-          <!-- Preview current image -->
-          <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-green-200 shadow-lg">
-            <img v-if="user.profile_image" :src="`/storage/${user.profile_image}`" alt="Photo actuelle" class="w-full h-full object-cover"/>
-            <div v-else class="bg-gradient-to-br from-green-400 to-emerald-500 w-full h-full flex items-center justify-center">
-              <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-              </svg>
+          
+          <!-- Preview -->
+          <div v-if="previewImage" class="w-32 h-32 rounded-full overflow-hidden border-4 border-green-200 shadow-lg relative group">
+            <img :src="previewImage" alt="Preview" class="w-full h-full object-cover"/>
+            
+            <!-- Overlay avec bouton -->
+            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+              <button type="button" @click="removeImage"
+                class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">
+                Remove
+              </button>
             </div>
           </div>
-          
-          <!-- File input with custom styling -->
-          <div class="w-full">
-            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-green-300 border-dashed rounded-xl cursor-pointer bg-green-50 hover:bg-green-100 transition-colors">
-              <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                <svg class="w-8 h-8 mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-                <p class="mb-2 text-sm text-green-600 font-medium">Click to upload</p>
-                <p class="text-xs text-green-500">PNG, JPG, JPEG (MAX. 2MB)</p>
-              </div>
-              <input type="file" accept="image/*" @change="onFileChange" class="hidden"/>
-            </label>
+
+          <!-- Zone Upload avec Drag & Drop -->
+          <div v-else 
+               class="w-full relative border-2 border-dashed rounded-xl cursor-pointer bg-green-50 hover:bg-green-100 transition-colors p-6 text-center"
+               @dragover.prevent
+               @drop.prevent="handleDrop">
+            <input type="file" accept="image/*" @change="onFileChange" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
+            
+            <div class="flex flex-col items-center">
+              <svg class="w-8 h-8 mb-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              </svg>
+              <p class="text-sm font-medium text-green-600">Drop your image here or click to upload</p>
+              <p class="text-xs text-green-500">PNG, JPG, JPEG (MAX. 2MB)</p>
+            </div>
           </div>
+
+          <!-- Message d’erreur -->
+          <p v-if="errorMessage" class="text-red-600 text-sm font-medium">{{ errorMessage }}</p>
         </div>
         
+        <!-- Bouton Submit -->
         <button type="submit" :disabled="processing" 
                 class="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg">
           <span v-if="processing" class="flex items-center justify-center">
@@ -492,6 +504,44 @@
     </div>
   </div>
 </div>
+<!-- Privacy Section -->
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-green-100 p-6">
+    <div class="flex items-center mb-4">
+      <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M12 11c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3zM12 11v10M12 1v4M4 21h16"/>
+      </svg>
+      <h2 class="text-xl font-semibold text-gray-800">Donation Name Privacy</h2>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" v-model="isAnonymous" class="sr-only" />
+        <div class="w-11 h-6 bg-gray-200 rounded-full relative transition-colors duration-200"
+             :class="{'bg-green-500': isAnonymous}">
+          <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200"
+                :class="{'translate-x-5': isAnonymous}"></span>
+        </div>
+        <span class="ml-3 text-sm text-gray-700">Hide my name on donations</span>
+      </label>
+    </div>
+
+    <p class="mt-2 text-sm text-gray-500">
+      When enabled, your name will appear as <strong>Anonymous</strong> on all your donations.
+    </p>
+
+    <button @click="updatePrivacy"
+            :disabled="processingPrivacy"
+            class="mt-4 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
+      <span v-if="processingPrivacy" class="flex items-center justify-center">
+        Updating...
+      </span>
+      <span v-else>Save Privacy</span>
+    </button>
+  </div>
+</div>
+
     </div>
   
 </template>
@@ -500,6 +550,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import Header from '@/Components/Header.vue'
+import axios from 'axios'
 
 
 const props = defineProps({
@@ -514,26 +565,81 @@ const props = defineProps({
 })
 
 const { receivedFoodDonations } = props
-
+const isAnonymous = ref(false)
+const originalName = ref(props.user.name)
+const processingPrivacy = ref(false)
 const hasReceivedDonations = computed(() => receivedFoodDonations.length > 0)
 const form = useForm({
   profile_image: null,
 })
 
+const previewImage = ref(null)
+const errorMessage = ref(null)
 const processing = ref(false)
 
-function onFileChange(event) {
-  form.profile_image = event.target.files[0]
+function onFileChange(e) {
+  const file = e.target.files[0]
+  validateFile(file)
+  if (file && file.size <= 2 * 1024 * 1024) {
+    form.profile_image = file
+  } else {
+    form.profile_image = null
+  }
+}
+function handleDrop(e) {
+  const file = e.dataTransfer.files[0]
+  validateFile(file)
+  if (file && file.size <= 2 * 1024 * 1024) {
+    form.profile_image = file
+  } else {
+    form.profile_image = null
+  }
+}
+function validateFile(file) {
+  if (!file) return
+
+  if (file.size > 2 * 1024 * 1024) {
+    errorMessage.value = "The image must not exceed 2MB."
+    previewImage.value = null
+    return
+  }
+
+  errorMessage.value = null
+  const reader = new FileReader()
+  reader.onload = (event) => {
+    previewImage.value = event.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+function removeImage() {
+  previewImage.value = null
+  errorMessage.value = null
 }
 
 function submit() {
+  if (!form.profile_image) {
+    errorMessage.value = "Please select an image."
+    return
+  }
+
   processing.value = true
+  errorMessage.value = null
+
   form.post('/profile/update-image', {
     onFinish: () => (processing.value = false),
-    onSuccess: () => location.reload(),
-    onError: () => alert('Upload failed'),
+    onSuccess: (page) => {
+      // Met à jour le preview depuis le serveur si besoin
+      previewImage.value = page.props.user.profile_image
+        ? `/storage/${page.props.user.profile_image}`
+        : null
+    },
+    onError: (errors) => {
+      errorMessage.value = errors.profile_image || 'Upload failed'
+    },
   })
 }
+
 const lineChart = ref(null)
 const barChart = ref(null)
 
@@ -784,6 +890,21 @@ const createCharts = () => {
     })
   }
 }
+function updatePrivacy() {
+  processingPrivacy.value = true
+  const newName = isAnonymous.value ? 'Anonymous' : originalName.value
+
+  axios.post('/profile/update-name-privacy', { name: newName })
+    .then(() => {
+      props.user.name = newName
+      processingPrivacy.value = false
+      alert('Privacy updated successfully!')
+    })
+    .catch(() => {
+      processingPrivacy.value = false
+      alert('Failed to update privacy')
+    })
+}
 
 onMounted(() => {
   initCharts()
@@ -794,5 +915,6 @@ onMounted(() => {
   console.log('affiliatedPartners:', props.affiliatedPartners)
   console.log('foodRequestDonations:', props.foodRequestDonations)
   console.log('receivedFoodDonations:', props.receivedFoodDonations)
+  isAnonymous.value = props.user.name === 'Anonymous'
 })
 </script>

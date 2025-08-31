@@ -14,6 +14,10 @@ class Volunteer extends Model
         'phone',
         'skills',
         'availability',
+    'document_path',
+    'verification_status',
+    'verification_note',
+    'verification_requested_at',        
     ];
 
     public function user()

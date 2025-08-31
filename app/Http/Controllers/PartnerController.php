@@ -8,6 +8,8 @@ use Inertia\Inertia;
 use App\Notifications\PartnerStatusUpdated;
 use App\Notifications\PartnerLevelUp;
 use App\Models\SponsorshipTier;
+use App\Notifications\DocumentRequestMail;
+
 
 
 class PartnerController extends Controller
@@ -117,6 +119,51 @@ public function updateLevel()
     }
 
     $this->user->notify(new PartnerLevelUp($newLevel));
+}
+public function uploadRequestDocument(Request $request, $id)
+{
+    $request->validate([
+        'document' => 'required|file|mimes:pdf,jpg,png|max:2048',
+    ]);
+
+    $path = $request->file('document')->store('documents');
+
+    // Déterminer le type d'entité pour mettre à jour le bon model
+    if ($request->is('users/*')) {
+        $entity = User::findOrFail($id);
+    } else {
+        $entity = Partner::findOrFail($id);
+    }
+
+    $entity->update(['document_path' => $path]);
+
+    // Optionnel : notifier l'admin
+    $admin = User::where('role', 'admin')->first();
+    if ($admin) {
+        $admin->notify(new \App\Notifications\DocumentUploaded($entity));
+    }
+
+    return back()->with('success', 'Document uploaded successfully.');
+}
+public function requestDocument(Request $request, Partner $partner)
+{
+    // validate note (optionnel)
+    $request->validate([
+        'note' => 'nullable|string|max:1000',
+    ]);
+
+    // Génère token + expiration
+    $token = Str::random(48);
+    $partner->document_request_token = $token;
+    $partner->document_request_expires_at = Carbon::now()->addDays(7);
+    $partner->save();
+
+    // Notifier le partner (on suppose $partner->user existe)
+    if ($partner->user) {
+        $partner->user->notify(new DocumentRequestMail($partner, $token, $request->note));
+    }
+
+    return back()->with('success', 'Document request sent.');
 }
 
 

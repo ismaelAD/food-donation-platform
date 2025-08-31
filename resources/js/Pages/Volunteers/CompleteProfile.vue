@@ -106,6 +106,46 @@
               {{ form.errors.availability }}
             </p>
           </div>
+<!-- Upload Official Document -->
+<div class="space-y-2">
+  <label class="block text-sm font-medium text-gray-700">Official Document (ID / Passport)</label>
+
+  <div class="border border-gray-200 rounded p-4">
+    <input type="file" accept=".pdf,image/*" @change="onFileChange" ref="docInput" class="hidden" />
+    
+    <div v-if="preview" class="flex items-center space-x-4">
+      <!-- Image Preview -->
+      <img v-if="isImage && preview" :src="preview" class="w-20 h-20 object-cover rounded" />
+      
+      <!-- PDF Preview -->
+      <div v-else class="w-20 h-20 bg-red-50 border border-red-200 rounded flex flex-col items-center justify-center">
+        <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M4 18h12V6l-4-4H4v16zm4-13v3h3l-3-3z"/>
+        </svg>
+        <span class="text-xs text-red-600 font-medium">PDF</span>
+      </div>
+
+      <div>
+        <p class="font-medium">{{ fileName }}</p>
+        <p class="text-sm text-gray-500">{{ fileSize }}</p>
+        <div class="mt-2 space-x-2">
+          <button type="button" @click="uploadDocument" :disabled="uploading" class="px-3 py-2 bg-emerald-600 text-white rounded">
+            {{ uploading ? 'Uploading...' : 'Upload' }}
+          </button>
+          <button type="button" @click="removeFile" class="px-3 py-2 bg-gray-100 rounded">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="text-center">
+      <button type="button" @click="$refs.docInput.click()" class="px-4 py-2 bg-white border rounded">Choose file</button>
+      <p class="text-sm text-gray-400 mt-2">PDF or image. Max 5MB.</p>
+    </div>
+
+    <p v-if="uploadError" class="text-sm text-red-600 mt-2">{{ uploadError }}</p>
+  </div>
+</div>
+
 
           <!-- Submit Button -->
           <div class="pt-4">
@@ -253,6 +293,20 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3'
 import { Link } from '@inertiajs/vue3'
+import { ref } from 'vue'
+
+const docFile = ref(null)
+const preview = ref(null)
+const isImage = ref(false)
+const fileName = ref('')
+const fileSize = ref('')
+const uploadError = ref(null)
+const uploading = ref(false)
+let objectUrl = null // pour revoke
+
+const uploadForm = useForm({
+  document: null
+})
 
 const props = defineProps({
   volunteer: Object
@@ -280,5 +334,89 @@ const submit = () => {
       // tu peux afficher une notification ici
     }
   })
+}
+function onFileChange(e) {
+  const f = e.target.files?.[0]
+  if (!f) return
+
+  // taille max 5MB (5120 KB)
+  if (f.size > 5 * 1024 * 1024) {
+    uploadError.value = 'File must be <= 5MB'
+    return
+  }
+
+  uploadError.value = null
+  fileName.value = f.name
+  fileSize.value = (f.size / 1024).toFixed(1) + ' KB'
+  isImage.value = f.type.startsWith('image/')
+
+  // si on avait créé un objectURL précédent, le libérer
+  if (objectUrl) {
+    URL.revokeObjectURL(objectUrl)
+    objectUrl = null
+  }
+
+  if (isImage.value) {
+    // preview dataURL pour images
+    const reader = new FileReader()
+    reader.onload = evt => preview.value = evt.target.result
+    reader.readAsDataURL(f)
+  } else {
+    // pour PDF autres types -> createObjectURL (utile pour <object> preview / ouverture)
+    objectUrl = URL.createObjectURL(f)
+    preview.value = objectUrl
+  }
+
+  // IMPORTANT: attacher le fichier au form Inertia (FormData)
+  uploadForm.document = f
+}
+
+function removeFile() {
+   if (objectUrl) {
+    URL.revokeObjectURL(objectUrl)
+    objectUrl = null
+  }
+  docFile.value = null
+  preview.value = null
+  uploadForm.document = null
+  fileName.value = ''
+  fileSize.value = ''
+  uploadError.value = null
+}
+
+function uploadDocument() {
+  if (!uploadForm.document) {
+    uploadError.value = 'Please select a file'
+    return
+  }
+
+  uploading.value = true
+  uploadError.value = null
+
+  // Utilise le chemin direct si 'route()' JS n'existe pas dans ton projet (Ziggy)
+  const url = typeof route === 'function' ? route('volunteer.upload-document') : '/volunteer/upload-document'
+
+  uploadForm.post(url, {
+    forceFormData: true, // CRUCIAL pour envoyer FormData
+    onSuccess: (page) => {
+      uploading.value = false
+      // clear and optionally refresh
+      removeFile()
+      // tu peux rediriger ou reload si tu veux assurer l'état
+      location.reload()
+    },
+    onError: (errors) => {
+      uploading.value = false
+      console.error('Upload errors', errors)
+      // show first useful error
+      if (errors?.document) uploadError.value = errors.document
+      else if (errors?.message) uploadError.value = errors.message
+      else uploadError.value = 'Upload failed'
+    },
+    onFinish: () => {
+      uploading.value = false
+    }
+  })
+
 }
 </script>

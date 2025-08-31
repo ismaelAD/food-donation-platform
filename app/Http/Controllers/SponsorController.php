@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
-class SponsorController extends Controller
-{
-    use App\Models\Sponsorship;
+use App\Models\Sponsorship;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
+class SponsorController extends Controller
+{
 
  public function getActiveSponsors()
     {

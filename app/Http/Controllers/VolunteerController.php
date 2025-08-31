@@ -1,7 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Storage;
+use App\Models\User as AppUser;
+use App\Notifications\VolunteerDocumentUploaded;
+use Illuminate\Support\Carbon;
 use App\Models\Volunteer;
 use App\Models\Donation;
 use Illuminate\Http\Request;
@@ -12,6 +15,81 @@ use App\Notifications\VolunteerConfirmation;
 
 class VolunteerController extends Controller
 {
+
+    /**
+ * Upload an official document for volunteer verification (from profile)
+ */
+public function uploadDocument(Request $request)
+{
+    $request->validate([
+        'document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB
+    ]);
+
+    $user = $request->user();
+    $volunteer = Volunteer::firstOrCreate(['user_id' => $user->id]);
+
+    // store file on public disk
+    $path = $request->file('document')->store('volunteer_documents', 'public');
+
+    // update volunteer
+    $volunteer->document_path = $path;
+    $volunteer->verification_status = 'pending';
+    $volunteer->verification_requested_at = Carbon::now();
+    $volunteer->verification_note = null;
+    $volunteer->save();
+
+    // notify all admins
+    $admins = AppUser::where('role', 'admin')->get();
+    foreach ($admins as $admin) {
+        $admin->notify(new VolunteerDocumentUploaded($volunteer, $path));
+    }
+
+    return back()->with('success', 'Document uploaded and sent for review.');
+}
+
+/**
+ * Admin: list volunteers pending verification
+ */
+public function adminPendingVerifications()
+{
+    $this->authorize('viewAny', Volunteer::class); // or check role admin manually
+
+    $volunteers = Volunteer::with('user')
+        ->where('verification_status', 'pending')
+        ->orderBy('verification_requested_at', 'desc')
+        ->get();
+
+    return Inertia::render('Admin/Volunteers/Verifications', [
+        'volunteers' => $volunteers,
+    ]);
+}
+
+/**
+ * Admin: update verification status (approve/decline/suspend)
+ */
+public function updateVerification(Request $request, $id)
+{
+    // check admin
+    if ($request->user()->role !== 'admin') {
+        abort(403);
+    }
+
+    $data = $request->validate([
+        'status' => 'required|in:approved,declined,suspended',
+        'note' => 'nullable|string',
+    ]);
+
+    $volunteer = Volunteer::findOrFail($id);
+    $volunteer->verification_status = $data['status'];
+    $volunteer->verification_note = $data['note'] ?? null;
+    $volunteer->save();
+
+    // notify the volunteer user
+    $volunteer->user->notify(new \App\Notifications\VolunteerVerificationResult($volunteer, $data['status'], $data['note'] ?? ''));
+
+    return redirect()->back()->with('success', 'Verification status updated.');
+}
+
     public function index()
     {
         $donations = Donation::withCount('volunteers')
@@ -155,11 +233,16 @@ public function update(Request $request, $id)
         });
 
     $hasVolunteerProfile = Volunteer::where('user_id', $userId)->exists();
+          $volunteer = null;
+    if (auth()->check()) {
+        $volunteer = auth()->user()->volunteer()->select('id','verification_status')->first();
+    }
 
     
     return Inertia::render('Volunteers/Needs', [
         'donations' => $donations,
         'hasVolunteerProfile' => $hasVolunteerProfile,
+        'volunteer' => $volunteer,
     ]);
 }
     

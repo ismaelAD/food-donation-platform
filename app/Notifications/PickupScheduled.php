@@ -38,7 +38,7 @@ class PickupScheduled extends Notification
     {
         return (new MailMessage)
             ->subject('Pickup Scheduled for Your Donation')
-            ->greeting("Hello {$notifiable->name},")
+            ->greeting("Hello,")
             ->line("{$this->volunteer->name} has scheduled a pickup for your donation (#{$this->pickup->donation_id}).")
             ->line("Date & Time: {$this->pickup->scheduled_at->format('Y-m-d H:i')}")
             ->line("Notes from receiver: {$this->pickup->notes}")

@@ -27,6 +27,18 @@ public function index()
         'partners'  => $partners,
     ]);
 }
+public function requestDocuments(Request $request)
+{
+    $request->validate([
+        'id' => 'required|integer',
+        'type' => 'required|string|in:user,partner',
+        'note' => 'required|string|max:1000'
+    ]);
+    
+    // Votre logique pour traiter la demande de documents
+    
+    return response()->json(['message' => 'Request sent successfully']);
+}
 
 
 }

@@ -13,6 +13,8 @@ use App\Http\Controllers\VolunteerController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\SponsorshipController;
 use App\Http\Controllers\SponsorController;
+use App\Http\Controllers\PaymentController;
+
 
 
 use App\Models\Sponsorship;
@@ -55,6 +57,8 @@ Route::middleware('auth:sanctum')->group(function () {
     //Route::get('/sponsor-images', [SponsorshipController::class, 'getActiveSponsorImages']);
     Route::get('/sponsors-images', [SponsorController::class, 'getActiveSponsors']);
     //Route::get('/sponsors-images', [App\Http\Controllers\Api\SponsorshipController::class, 'images']);
+    Route::post('/payment-intent', [PaymentController::class, 'create']);
+
 
 
 

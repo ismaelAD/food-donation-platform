@@ -186,6 +186,29 @@ if ($user->role === 'organization') {
 
         ]);
     }
+public function updateNamePrivacy(Request $request)
+{
+    $user = auth()->user();
+
+    // Si on reçoit "Anonymous", on stocke le vrai nom et on remplace
+    if ($request->name !== 'Anonymous') {
+        $user->name = $user->real_name; // garder le vrai nom
+        //$user->name = 'Anonymous';
+    } else {
+        $user->real_name = $user->name; // garder le vrai nom
+        $user->name = 'Anonymous';
+
+        // Sinon on restaure le vrai nom
+        //$user->name = $user->real_name ?? $user->name;
+        //$user->real_name = null; // on peut le vider
+    }
+
+    $user->save();
+
+    return back()->with('success', 'Privacy updated.');
+}
+
+
 
     /**
      * This method had an unclosed brace: we've now fixed it

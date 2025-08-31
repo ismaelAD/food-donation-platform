@@ -19,7 +19,6 @@
     <div class="relative z-20 min-h-screen">
       <div class="container mx-auto px-4 py-8">
 
-
         <!-- Header Section -->
         <div class="text-center mb-12">
           <div class="inline-block bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg px-8 py-6 mb-6">
@@ -32,6 +31,7 @@
           </div>
         </div>
 
+
         <!-- Donations Grid -->
         <div v-if="donations.length" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div
@@ -40,8 +40,7 @@
             class="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-emerald-100/50"
           >
             <!-- Card Header -->
-            <div class="relative p-6 pb-4">
-              <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 to-green-400 rounded-t-2xl"></div>
+           <div class="relative p-6 pb-4">
               
               <div class="flex justify-between items-start mb-4">
                 <div class="flex-1">
@@ -131,11 +130,14 @@
               </div>
             </div>
 
-            <!-- Card Footer -->
+            <!-- Card Footer - LOGIQUE CORRIGÉE -->
             <div class="px-6 pb-6">
+
+              <!-- 1. Déjà volontaire pour cette donation -->
               <button
                 v-if="donation.is_volunteered"
                 class="w-full bg-gradient-to-r from-gray-100 to-gray-200 text-gray-500 cursor-not-allowed px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center shadow-sm"
+                disabled
               >
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -143,37 +145,68 @@
                 Already Volunteered
               </button>
 
+              <!-- 2. Pas de profil volontaire -->
               <button
-                v-else
-                @click="handleVolunteer(donation.id)"
-                class="w-full px-4 py-3 rounded-lg font-medium flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                :class="props.hasVolunteerProfile
-                  ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white'
-                  : 'bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white cursor-pointer'
-                "
+                v-else-if="!hasVolunteerProfile"
+                @click="() => router.visit('/volunteer/complete-profile')"
+                class="w-full px-4 py-3 rounded-lg font-medium flex items-center justify-center transition-all duration-200 shadow-md bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white"
               >
-                <svg 
-                  v-if="props.hasVolunteerProfile" 
-                  class="w-5 h-5 mr-2" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <svg 
-                  v-else 
-                  class="w-5 h-5 mr-2" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                 </svg>
-                {{ props.hasVolunteerProfile
-                   ? 'Volunteer for this Donation'
-                   : 'Complete Your Profile First'
-                }}
+                Complete Your Profile First
+              </button>
+
+              <!-- 3. Profil en attente -->
+              <button
+                v-else-if="verificationStatus === 'pending'"
+                class="w-full px-4 py-3 rounded-lg font-medium flex items-center justify-center transition-all duration-200 shadow-md bg-gray-100 text-gray-700 cursor-not-allowed"
+                @click="() => showNotification('Your volunteer profile is under review. Please wait for approval.', 'info')"
+                disabled
+              >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M13 16h-2v-2h2v2zm0-4h-2V6h2v6zM2 10a8 8 0 1016 0 8 8 0 00-16 0z" clip-rule="evenodd"/>
+                </svg>
+                Verification Pending
+              </button>
+
+              <!-- 4. Profil rejeté -->
+              <button
+                v-else-if="verificationStatus === 'suspended'"
+                @click="() => { router.visit('/volunteer/edit'); showNotification('Your documents were rejected — please update them.', 'error') }"
+                class="w-full px-4 py-3 rounded-lg font-medium flex items-center justify-center transition-all duration-200 shadow-md bg-red-500 text-white hover:bg-red-600"
+              >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9h2v5H9V9zM9 6h2v2H9V6z" clip-rule="evenodd"/>
+                </svg>
+                Verification Needed — Update Documents
+              </button>
+
+              <!-- 5. Profil approuvé - PEUT FAIRE DU VOLONTARIAT -->
+              <button
+                v-else-if="verificationStatus === 'approved'"
+                @click="handleVolunteer(donation.id)"
+                class="w-full px-4 py-3 rounded-lg font-medium flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white"
+              >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Volunteer for this Donation
+              </button>
+
+              <!-- 6. Cas par défaut (ne devrait pas arriver) -->
+              <button
+                v-else
+                class="w-full px-4 py-3 rounded-lg font-medium flex items-center justify-center transition-all duration-200 shadow-md bg-gray-300 text-gray-600 cursor-not-allowed"
+                disabled
+              >
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Cannot Volunteer (Status: {{ verificationStatus }})
               </button>
             </div>
+
           </div>
         </div>
 
@@ -204,51 +237,102 @@ import { usePage, router } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import Header from '@/Components/Header.vue'
 
-
+// Props provenant du parent (liste de donations, etc.)
 const props = defineProps({
   donations: Array,
   hasVolunteerProfile: Boolean,
+  volunteer: Object,
 })
 
+// Accès aux props Inertia / auth
+const page = usePage()
+
+// Volunteer profile : extrait depuis auth.user (si présent)
+const volunteerProfile = computed(() => page.props?.auth?.user?.volunteer ?? null)
+
+// hasVolunteerProfile : priorise la prop envoyée par le parent, sinon dérive du volunteerProfile
+const hasVolunteerProfile = computed(() => {
+  // Priorité 1: prop directe du parent
+  if (typeof props.hasVolunteerProfile === 'boolean') {
+    return props.hasVolunteerProfile
+  }
+  
+  // Priorité 2: depuis props.volunteer
+  if (props.volunteer?.id) {
+    return true
+  }
+  
+  // Priorité 3: depuis page.props.auth.user.volunteer
+  if (volunteerProfile.value?.id) {
+    return true
+  }
+  
+  return false
+})
+
+// verificationStatus : 'approved' | 'pending' | 'rejected' | 'not_submitted'
+const verificationStatus = computed(() => {
+  // Priorité 1: depuis props.volunteer
+  if (props.volunteer?.verification_status) {
+    return props.volunteer.verification_status
+  }
+  
+  // Priorité 2: depuis page.props.auth.user.volunteer
+  if (volunteerProfile.value?.verification_status) {
+    return volunteerProfile.value.verification_status
+  }
+  
+  return 'not_submitted'
+})
+
+// Computed pour savoir si l'utilisateur peut faire du volontariat
+const canVolunteer = computed(() => {
+  return hasVolunteerProfile.value && verificationStatus.value === 'approved'
+})
+
+// Fonction pour postuler comme volunteer
 function handleVolunteer(donationId) {
-  if (!props.hasVolunteerProfile) {
-    // pas encore de profil : redirection vers completition
+  // Vérifications de sécurité
+  if (!hasVolunteerProfile.value) {
+    showNotification('Please complete your volunteer profile before applying.', 'info')
     return router.visit('/volunteer/complete-profile')
   }
-  // profil ok : on poste la participation
+
+  if (verificationStatus.value === 'pending') {
+    showNotification('Your volunteer profile is under review. You cannot volunteer yet.', 'error')
+    return
+  }
+
+  if (verificationStatus.value === 'rejected') {
+    showNotification('Your documents were rejected. Please update them to be able to volunteer.', 'error')
+    return router.visit('/volunteer/edit')
+  }
+
+  if (verificationStatus.value !== 'approved') {
+    showNotification('You are not allowed to volunteer yet.', 'error')
+    return
+  }
+
+  // Envoi de la demande de volontariat
   router.post(`/volunteer/${donationId}`, {}, {
     preserveScroll: true,
     onSuccess: () => {
-      // Update the specific donation's volunteered status
+      // Mise à jour locale de la donation (UX)
       const donation = props.donations.find(d => d.id === donationId)
       if (donation) {
         donation.is_volunteered = true
-        donation.volunteers_count++
+        donation.volunteers_count = (donation.volunteers_count || 0) + 1
       }
       showNotification('Thank you! The donor has been notified.', 'success')
     },
     onError: (errors) => {
+      console.error('volunteer error', errors)
       showNotification('An error occurred. Please try again.', 'error')
     }
   })
 }
 
-const page = usePage()
-
-// Récupère directement le volunteer lié à l'user (ou undefined)
-const volunteerProfile = computed(() => page.props.auth.user.volunteer)
-
-// Booléen : true si l'utilisateur a déjà un profil Volunteer créé
-const hasVolunteerProfile = computed(() => Boolean(volunteerProfile.value?.id))
-
-const goBack = () => {
-  if (window.history.length > 1) {
-    window.history.back()
-  } else {
-    router.visit('/dashboard')
-  }
-}
-
+// Helpers : format date, copyLink (inchangés)
 const formatDate = dt => new Date(dt).toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'short',
@@ -266,24 +350,23 @@ function copyLink(id) {
   })
 }
 
-// Enhanced notification system
+// Notification visual
 function showNotification(message, type = 'info') {
   const container = document.getElementById('notification-container')
   if (!container) return
-  
-  // Create notification element
+
   const notification = document.createElement('div')
   notification.className = `transform transition-all duration-500 translate-x-full opacity-0 max-w-sm p-4 rounded-xl shadow-2xl backdrop-blur-sm border ${
-    type === 'success' ? 'bg-emerald-500/90 text-white border-emerald-400/50' : 
-    type === 'error' ? 'bg-red-500/90 text-white border-red-400/50' : 
+    type === 'success' ? 'bg-emerald-500/90 text-white border-emerald-400/50' :
+    type === 'error' ? 'bg-red-500/90 text-white border-red-400/50' :
     'bg-blue-500/90 text-white border-blue-400/50'
   }`
-  
+
   notification.innerHTML = `
     <div class="flex items-center">
       <div class="flex-shrink-0">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-          ${type === 'success' ? 
+          ${type === 'success' ?
             '<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>' :
             type === 'error' ?
             '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>' :
@@ -294,30 +377,20 @@ function showNotification(message, type = 'info') {
       <div class="ml-3">
         <span class="font-medium text-sm">${message}</span>
       </div>
-      <button class="ml-4 text-white/70 hover:text-white transition-colors" onclick="this.parentElement.parentElement.remove()">
+      <button class="ml-4 text-white/70 hover:text-white transition-colors" onclick="this.parentElement.parentElement.parentElement.remove()">
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
         </svg>
       </button>
     </div>
   `
-  
+
   container.appendChild(notification)
-  
-  // Animate in
-  setTimeout(() => {
-    notification.classList.remove('translate-x-full', 'opacity-0')
-  }, 100)
-  
-  // Remove after 5 seconds
+  setTimeout(() => notification.classList.remove('translate-x-full', 'opacity-0'), 100)
   setTimeout(() => {
     if (notification.parentNode) {
       notification.classList.add('translate-x-full', 'opacity-0')
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification)
-        }
-      }, 500)
+      setTimeout(() => notification.parentNode && notification.parentNode.removeChild(notification), 500)
     }
   }, 5000)
 }

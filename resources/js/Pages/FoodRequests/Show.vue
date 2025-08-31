@@ -1,5 +1,6 @@
 <!-- resources/js/Pages/FoodRequests/Show.vue -->
 <template>
+    <Header/>
   <div class="min-h-screen bg-gray-50">
     <div class="max-w-4xl mx-auto py-8 px-4 space-y-6">
       
@@ -150,100 +151,27 @@
           </form>
         </div>
 
-           <!-- Money Contribution Section -->
-  <div v-if="goalAmount > 0" class="bg-white shadow-sm rounded-xl border border-gray-200 p-6">
-    <h3 class="text-xl font-bold text-gray-900 mb-4">Contribute Money</h3>
-    
-    <!-- Étape 1 : montant only -->
-    <div v-if="!showPaymentDetails">
-      <form @submit.prevent="preparePayment" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Amount (€)</label>
-          <input 
-            v-model.number="payment.amount" 
-            type="number"
-            min="1" 
-            step="0.01"
-            required
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-            placeholder="e.g., 25.00"
-          />
-        </div>
-        <button 
-          type="submit"
-          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
-        >
-          Contribute Now
-        </button>
-      </form>
-    </div>
+<!-- Vérifie si le food request a un lien PayPal -->
+<div v-if="request.paypal_link" class="space-y-4">
+  <a 
+    :href="request.paypal_link" 
+    target="_blank" 
+    rel="noopener noreferrer"
+    class="block bg-emerald-600 text-white text-center py-2 px-4 rounded-lg shadow hover:bg-emerald-700 transition"
+  >
+    Contribute via PayPal
+  </a>
+  <p class="text-sm text-gray-500 text-center">
+    You will be redirected to PayPal to complete your contribution.
+  </p>
+</div>
 
-    <!-- Étape 2 : détails de paiement -->
-    <div v-else class="space-y-4 mt-4">
-      <h4 class="text-md font-semibold text-gray-700">Payment Details</h4>
-      <form @submit.prevent="contribute" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
-          <input 
-            v-model="payment.cardName"
-            type="text" 
-            required
-            class="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="John Doe"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
-          <input 
-            v-model="payment.cardNumber"
-            type="text" 
-            required
-            pattern="\d{4}\s\d{4}\s\d{4}\s\d{4}"
-            class="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="4242 4242 4242 4242"
-          />
-        </div>
-        <div class="flex gap-3">
-          <div class="flex-1">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Expiry (MM/YY)</label>
-            <input 
-              v-model="payment.expiry"
-              type="text" 
-              required
-              pattern="(0[1-9]|1[0-2])\/\d{2}"
-              class="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="MM/YY"
-            />
-          </div>
-          <div class="flex-1">
-            <label class="block text-sm font-medium text-gray-700 mb-2">CVC</label>
-            <input 
-              v-model="payment.cvc"
-              type="text" 
-              required
-              pattern="\d{3}"
-              class="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="123"
-            />
-          </div>
-        </div>
-        <button 
-          type="submit"
-          :disabled="payment.processing"
-          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50"
-        >
-          {{ payment.processing ? 'Processing...' : 'Send Payment' }}
-        </button>
-        <button 
-          type="button"
-          @click="cancelPayment"
-          class="w-full text-center text-gray-600 mt-2 hover:underline"
-        >
-          Cancel
-        </button>
-      </form>
-    </div>
-  </div>
+<!-- Si pas de lien PayPal défini -->
+<p v-else class="text-gray-500 text-center">
+  No PayPal link provided for this request.
+</p>
+
+
         
 
       </div>
@@ -254,6 +182,57 @@
 <script setup>
 import { ref,computed } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
+import { loadStripe } from '@stripe/stripe-js'
+import Header from '@/Components/Header.vue'
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_KEY) // pk_test_xxx
+
+console.log('Stripe key:', import.meta.env.VITE_STRIPE_KEY);
+console.log('stripePromise:', stripePromise);
+
+
+const amount = ref('')
+const clientSecret = ref(null)
+const elements = ref(null)
+const cardElement = ref(null)
+const processing = ref(false)
+
+const startPayment = async () => {
+const res = await fetch('http://127.0.0.1:8000/api/payment-intent', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+ },
+  body: JSON.stringify({ amount: amount.value })
+})
+
+  const data = await res.json()
+  clientSecret.value = data.clientSecret
+
+  const stripe = await stripePromise
+  elements.value = stripe.elements()
+  const card = elements.value.create('card')
+  card.mount('#card-element')
+  cardElement.value = card
+}
+
+const pay = async () => {
+  processing.value = true
+  const stripe = await stripePromise
+
+  const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret.value, {
+    payment_method: {
+      card: cardElement.value,
+    }
+  })
+
+  if (error) {
+    alert(error.message)
+  } else if (paymentIntent.status === 'succeeded') {
+    alert('✅ Payment successful !')
+  }
+  processing.value = false
+}
 
 const props = defineProps({ request: Object })
 const showPaymentDetails = ref(false)

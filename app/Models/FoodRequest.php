@@ -17,6 +17,8 @@ class FoodRequest extends Model
         'quantity',
         'target_amount',
         'needed_before',
+        'paypal_link',
+
     ];
 
     public function organization()
