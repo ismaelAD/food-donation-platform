@@ -1,5 +1,6 @@
 # Utiliser l'image PHP de base
 FROM php:8.2-fpm
+RUN php -v
 
 # Installation des dépendances PHP
 RUN apt-get update && apt-get install -y \
