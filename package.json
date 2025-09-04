@@ -2,10 +2,13 @@
     "$schema": "https://json.schemastore.org/package.json",
     "private": true,
     "type": "module",
+
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "production": "npm run build"
     },
+
     "devDependencies": {
         "@inertiajs/vue3": "^2.0.0",
         "@tailwindcss/aspect-ratio": "^0.4.2",
