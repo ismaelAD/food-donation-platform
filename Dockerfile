@@ -1,5 +1,5 @@
 # Utiliser l'image PHP de base
-FROM php:8.2-fpm
+FROM php:8.2-cli
 RUN php -v
 
 # Installation des dépendances PHP
