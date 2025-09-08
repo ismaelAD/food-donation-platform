@@ -1,8 +1,10 @@
 [phases.setup]
-nixPkgs = ["php", "composer", "nodejs", "npm"]
+nixPkgs = ["php", "nodejs", "npm"] # notice: no "composer" here
 
 [phases.build]
 cmds = [
+  "curl -sS https://getcomposer.org/installer | php",
+  "mv composer.phar /usr/local/bin/composer",
   "composer install --no-dev --optimize-autoloader",
   "npm install",
   "npm run build"
