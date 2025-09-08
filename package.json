@@ -4,10 +4,11 @@
     "type": "module",
 
     "scripts": {
-        "build": "vite build",
-        "dev": "vite",
-        "production": "npm run build",
-        "start": "concurrently \"php artisan serve --host=0.0.0.0 --port=8000\" \"npm run dev\""
+"build": "vite build",
+  "dev": "vite",
+  "production": "npm run build",
+  "serve:local": "concurrently \"php artisan serve --host=0.0.0.0 --port=8000\" \"npm run dev\"",
+  "start": "php-fpm --nodaemonize"
     },
 
     "devDependencies": {
