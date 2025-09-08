@@ -5,7 +5,6 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
     plugins: [
-
         laravel({
             input: [
                 'resources/css/app.css',
@@ -31,7 +30,9 @@ export default defineConfig({
     define: {
         global: 'globalThis',
     },
-        build: {
+    base: '/', // <-- Ajouté pour servir tous les assets avec un chemin relatif
+    build: {
         outDir: 'public/build',
+        emptyOutDir: true, // vide le dossier build avant chaque build pour éviter les fichiers obsolètes
     }
 });
